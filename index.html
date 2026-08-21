@@ -548,6 +548,103 @@
       color: #00f0ff;
     }
 
+    /* Leaderboard / Tabla de Posiciones a la Derecha */
+    .hud-leaderboard {
+      position: absolute;
+      top: 68px;
+      right: 18px;
+      width: 220px;
+      max-width: 45vw;
+      background: rgba(10, 16, 35, 0.88);
+      border: 2px solid rgba(0, 240, 255, 0.45);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(0, 240, 255, 0.1);
+      padding: 8px 10px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+
+    .hud-leaderboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+      font-size: 8px;
+      font-weight: bold;
+      color: #00f0ff;
+      letter-spacing: 1px;
+    }
+
+    .hud-leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 240px;
+      overflow: hidden;
+    }
+
+    .hud-leaderboard-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.03);
+      font-size: 7px;
+      color: #e0e6f5;
+    }
+
+    .hud-leaderboard-item.is-me {
+      background: rgba(0, 255, 102, 0.15);
+      border: 1px solid rgba(0, 255, 102, 0.5);
+      color: #00ff66;
+    }
+
+    .hud-leaderboard-rank {
+      font-weight: bold;
+      width: 14px;
+      text-align: center;
+    }
+    .hud-leaderboard-rank.rank-1 { color: #ffe600; text-shadow: 0 0 6px rgba(255, 230, 0, 0.6); }
+    .hud-leaderboard-rank.rank-2 { color: #d0d5dd; }
+    .hud-leaderboard-rank.rank-3 { color: #d97706; }
+
+    .hud-leaderboard-user {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .hud-leaderboard-avatar {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background-size: cover;
+      background-position: center top;
+      flex-shrink: 0;
+    }
+
+    .hud-leaderboard-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .hud-leaderboard-aura {
+      font-weight: bold;
+      color: #ffe600;
+      flex-shrink: 0;
+    }
+
     .hud-farm-orb {
       background: radial-gradient(circle, #bd00ff 0%, #4c00ff 100%);
       border: 4px solid #fff;
@@ -689,9 +786,156 @@
       z-index: 120;
     }
 
-    @keyframes floatAura {
-      0% { opacity: 1; transform: translate(0, 0); }
-      100% { opacity: 0; transform: translate(var(--tx, 0px), -50px); }
+    /* Efecto visual de Impacto Crítico en Pantalla */
+    .crit-impact-flash {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(255, 0, 85, 0.45) 0%, rgba(255, 100, 0, 0.25) 50%, rgba(0, 0, 0, 0.6) 100%);
+      pointer-events: none;
+      z-index: 150;
+      opacity: 0;
+      mix-blend-mode: screen;
+    }
+    .crit-impact-flash.active {
+      animation: critFlashAnim 0.35s ease-out forwards;
+    }
+    @keyframes critFlashAnim {
+      0% { opacity: 1; transform: scale(1.03); }
+      100% { opacity: 0; transform: scale(1.0); }
+    }
+
+    .crit-banner-popup {
+      position: absolute;
+      top: 32%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      color: #fff;
+      font-size: clamp(22px, 4.5vw, 38px);
+      font-weight: 900;
+      text-shadow: 0 0 25px #ff0055, 3px 3px 0 #000;
+      pointer-events: none;
+      z-index: 160;
+      opacity: 0;
+      white-space: nowrap;
+      letter-spacing: 2px;
+    }
+    .crit-banner-popup.active {
+      animation: critBannerAnim 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes critBannerAnim {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-6deg); }
+      22% { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(2deg); }
+      70% { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(0deg); }
+      100% { opacity: 0; transform: translate(-50%, -65%) scale(1.1); }
+    }
+
+    /* ══ CONTROLES MÓVILES (JOYSTICK VIRTUAL Y BOTONES TÁCTILES) ══ */
+    .mobile-controls-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 40;
+      display: none;
+    }
+
+    .mobile-controls-layer.touch-active {
+      display: block;
+    }
+
+    .virtual-joystick-zone {
+      position: absolute;
+      bottom: 25px;
+      left: 20px;
+      width: 140px;
+      height: 140px;
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .virtual-joystick-base {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, rgba(12, 18, 38, 0.6) 100%);
+      border: 2px solid rgba(0, 240, 255, 0.5);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+    }
+
+    .virtual-joystick-knob {
+      position: absolute;
+      width: 54px;
+      height: 54px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, #00f0ff 0%, #0072ff 100%);
+      border: 2px solid #fff;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
+      pointer-events: none;
+      transition: transform 0.05s ease-out;
+    }
+
+    .mobile-action-buttons {
+      position: absolute;
+      bottom: 145px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .mobile-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      background: rgba(12, 18, 38, 0.85);
+      color: #fff;
+      font-size: 18px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .mobile-btn:active {
+      transform: scale(0.92);
+      filter: brightness(1.2);
+    }
+
+    .mobile-btn-jump {
+      border-color: #00ff66;
+      background: rgba(0, 255, 102, 0.25);
+    }
+    .mobile-btn-emote {
+      border-color: #bd00ff;
+      background: rgba(189, 0, 255, 0.25);
+    }
+    .mobile-btn-bocina {
+      border-color: #ff0077;
+      background: rgba(255, 0, 119, 0.25);
+    }
+
+    @media (max-width: 900px), (pointer: coarse) {
+      .mobile-controls-layer {
+        display: block;
+      }
+      .hud-controls-hint {
+        display: none;
+      }
+      .hud-leaderboard {
+        width: 170px;
+        top: 55px;
+        right: 10px;
+        padding: 5px 8px;
+      }
     }
   </style>
 </head>
@@ -786,7 +1030,36 @@
           </div>
         </div>
 
-        <div class="hud-bottom">
+        <!-- Tabla de Clasificación / Leaderboard a la Derecha -->
+        <div class="hud-leaderboard" id="hudLeaderboard">
+          <div class="hud-leaderboard-header">
+            <span>🏆 TOP AURA</span>
+            <span id="leaderboardCount" style="color: #ffe600; font-size: 7px;">1 PLAYER</span>
+          </div>
+          <div class="hud-leaderboard-list" id="leaderboardList"></div>
+        </div>
+
+        <!-- Efecto de Impacto Crítico en Pantalla -->
+      <div class="crit-impact-flash" id="critImpactFlash"></div>
+      <div class="crit-banner-popup" id="critBannerPopup">💥 ¡GOLPE CRÍTICO!</div>
+
+      <!-- Controles Táctiles para Móviles / Celular -->
+      <div class="mobile-controls-layer" id="mobileControlsLayer">
+        <!-- Joystick Virtual (Movimiento) -->
+        <div class="virtual-joystick-zone" id="virtualJoystickZone">
+          <div class="virtual-joystick-base"></div>
+          <div class="virtual-joystick-knob" id="virtualJoystickKnob"></div>
+        </div>
+
+        <!-- Botones de Acción Móviles -->
+        <div class="mobile-action-buttons">
+          <button class="mobile-btn mobile-btn-jump" id="mobileBtnJump" title="Saltar">🦘</button>
+          <button class="mobile-btn mobile-btn-emote" id="mobileBtnEmote" title="Emotes">🕺</button>
+          <button class="mobile-btn mobile-btn-bocina" id="mobileBtnBocina" title="Bocina">📻</button>
+        </div>
+      </div>
+
+      <div class="hud-bottom">
           <div class="hud-controls-hint">
             <b>[W,A,S,D]</b> Moverse &bull; <b>[ESPACIO]</b> Saltar &bull; <b>[SHIFT]</b> Correr<br>
             <b>[CLICK]</b> Vista 3D &bull; <b>[B]</b> Emotes &bull; <b>[E / CLIC]</b> Farmear Aura
@@ -868,12 +1141,18 @@
 
     function resolveUrl(url) {
       if (!url) return '';
+      // Si viene con ruta local file:/// o de disco, extraer solo el nombre de archivo
+      if (url.startsWith('file://') || url.includes(':\\') || url.includes(':/')) {
+        url = url.split('/').pop().split('\\').pop();
+      }
       if (url.includes('github.com/') && url.includes('/blob/')) {
         url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
       }
-      return (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))
-        ? url
-        : 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + url;
+      if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        return url;
+      }
+      const cleanName = url.replace(/^\/+/, '');
+      return 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + cleanName;
     }
 
     /* ══ AUDIO SYNTHESIZER ══ */
@@ -1055,7 +1334,17 @@
       });
 
       playSound('select');
-      spawnFloatingAura('🎵 MÚSICA ACTIVADA');
+
+      // Bonus de aura al encender la música de la bocina
+      const speakerBonus = 200;
+      auraCount += speakerBonus;
+      hudAuraVal.textContent = auraCount.toLocaleString();
+      const bonusText = `+${speakerBonus} AURA ⚡`;
+      lastLocalAuraGain = { text: bonusText, time: Date.now() };
+      spawnFloatingAura(bonusText);
+      if (typeof spawnFloatingAura3D === 'function') {
+        spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, bonusText, '#00ff66');
+      }
     }
 
     function pauseSpeakerAudio() {
@@ -1483,6 +1772,8 @@
     let farmearPlayersData = {};
     let ffaUnsub = null;
     let farmearUnsub = null;
+    let lastLocalAuraGain = null;
+    let lastLocalCritHit = null;
 
     function maybePublish(force = false) {
       const now = Date.now();
@@ -1506,6 +1797,7 @@
         holdingSpeaker: !!isSpeakerEquipped,
         hasAuraRing: !!(playerAuraRingMesh && playerAuraRingMesh.visible),
         lastAuraGain: lastLocalAuraGain,
+        lastCritHit: lastLocalCritHit,
         speakerAudioUrl: (isSpeakerEquipped && isSpeakerAudioPlaying) ? speakerMusicUrl : null,
         speakerAudioPlaying: !!(isSpeakerEquipped && isSpeakerAudioPlaying),
         activeEmote: isEmotePlaying ? {
@@ -1566,8 +1858,9 @@
       group.add(ringMesh);
 
       // Partículas de aura que se elevan desde el círculo hacia arriba
-      const particleCount = 40;
+      const particleCount = 48;
       const posArray = new Float32Array(particleCount * 3);
+      const colorArray = new Float32Array(particleCount * 3);
       const particleData = [];
 
       for (let i = 0; i < particleCount; i++) {
@@ -1577,6 +1870,10 @@
         posArray[i * 3] = Math.cos(angle) * r;
         posArray[i * 3 + 1] = y;
         posArray[i * 3 + 2] = Math.sin(angle) * r;
+
+        colorArray[i * 3] = 0.0;
+        colorArray[i * 3 + 1] = 1.0;
+        colorArray[i * 3 + 2] = 0.4;
 
         particleData.push({
           angle: angle,
@@ -1589,6 +1886,7 @@
 
       const pGeo = new THREE.BufferGeometry();
       pGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+      pGeo.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
 
       // Textura circular suave y brillante para las partículas
       const pCanvas = document.createElement('canvas');
@@ -1597,17 +1895,18 @@
       const pCtx = pCanvas.getContext('2d');
       const grad = pCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
       grad.addColorStop(0, '#ffffff');
-      grad.addColorStop(0.35, '#00ff66');
-      grad.addColorStop(1, 'rgba(0,255,102,0)');
+      grad.addColorStop(0.45, 'rgba(255,255,255,0.95)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
       pCtx.fillStyle = grad;
       pCtx.fillRect(0, 0, 32, 32);
       const pTex = new THREE.CanvasTexture(pCanvas);
 
       const pMat = new THREE.PointsMaterial({
-        size: 0.38,
+        size: 0.42,
         map: pTex,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.9,
+        opacity: 0.95,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       });
@@ -1619,7 +1918,8 @@
         ring: ringMesh,
         particles: particlesMesh,
         particleData: particleData,
-        posAttr: pGeo.getAttribute('position')
+        posAttr: pGeo.getAttribute('position'),
+        colorAttr: pGeo.getAttribute('color')
       };
 
       return group;
@@ -1751,6 +2051,17 @@
         op.lastSeenGainTime = pData.lastAuraGain.time;
         const color = pData.lastAuraGain.text.includes('⚔️') ? '#ff0055' : (pData.lastAuraGain.text.includes('NODO') ? '#00ff66' : '#ffe600');
         spawnFloatingAura3D(op.group.position.x, op.group.position.y, op.group.position.z, pData.lastAuraGain.text, color);
+      }
+
+      // Si el otro jugador dio un golpe crítico o fuerte cerca, hacer que tiemble la pantalla y salga el impacto
+      if (pData.lastCritHit && pData.lastCritHit.time && pData.lastCritHit.time > (op.lastSeenCritTime || 0)) {
+        op.lastSeenCritTime = pData.lastCritHit.time;
+        const dist = playerPos.distanceTo(op.group.position);
+        if (dist < 8.5) {
+          const shakeFactor = Math.max(0.18, (1.0 - dist / 8.5) * 0.55);
+          triggerCameraShake(shakeFactor, 280);
+          triggerCritImpactVisual('💥 ¡IMPACTO CRÍTICO!');
+        }
       }
 
       updateOtherPlayerEmote(id, pData);
@@ -2442,6 +2753,166 @@
         });
       }
 
+      // ══ CONTROLES MÓVILES (JOYSTICK TÁCTIL Y ROTACIÓN DE CÁMARA) ══
+      const mobileControlsLayer = document.getElementById('mobileControlsLayer');
+      const virtualJoystickZone = document.getElementById('virtualJoystickZone');
+      const virtualJoystickKnob = document.getElementById('virtualJoystickKnob');
+      const mobileBtnJump = document.getElementById('mobileBtnJump');
+      const mobileBtnEmote = document.getElementById('mobileBtnEmote');
+      const mobileBtnBocina = document.getElementById('mobileBtnBocina');
+
+      window.addEventListener('touchstart', () => {
+        if (mobileControlsLayer) mobileControlsLayer.classList.add('touch-active');
+      }, { once: true });
+
+      let joystickTouchId = null;
+      let joystickCenter = { x: 0, y: 0 };
+      const maxJoystickRadius = 45;
+
+      if (virtualJoystickZone && virtualJoystickKnob) {
+        virtualJoystickZone.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          const touch = e.changedTouches[0];
+          joystickTouchId = touch.identifier;
+          const rect = virtualJoystickZone.getBoundingClientRect();
+          joystickCenter = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+          };
+          updateJoystick(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        virtualJoystickZone.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            if (touch.identifier === joystickTouchId) {
+              updateJoystick(touch.clientX, touch.clientY);
+              break;
+            }
+          }
+        }, { passive: false });
+
+        const resetJoystick = (e) => {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickTouchId) {
+              joystickTouchId = null;
+              virtualJoystickKnob.style.transform = 'translate(-50%, -50%)';
+              keys.w = false; keys.s = false; keys.a = false; keys.d = false; keys.shift = false;
+              break;
+            }
+          }
+        };
+
+        virtualJoystickZone.addEventListener('touchend', resetJoystick, { passive: false });
+        virtualJoystickZone.addEventListener('touchcancel', resetJoystick, { passive: false });
+
+        function updateJoystick(touchX, touchY) {
+          const dx = touchX - joystickCenter.x;
+          const dy = touchY - joystickCenter.y;
+          const dist = Math.hypot(dx, dy);
+          const clampedDist = Math.min(dist, maxJoystickRadius);
+          const angle = Math.atan2(dy, dx);
+
+          const knobX = Math.cos(angle) * clampedDist;
+          const knobY = Math.sin(angle) * clampedDist;
+          virtualJoystickKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+
+          if (dist > 10) {
+            keys.w = dy < -12;
+            keys.s = dy > 12;
+            keys.a = dx < -12;
+            keys.d = dx > 12;
+            keys.shift = dist > 35;
+          } else {
+            keys.w = false; keys.s = false; keys.a = false; keys.d = false; keys.shift = false;
+          }
+        }
+      }
+
+      // Deslizar dedo derecho para rotar cámara en pantalla táctil
+      let touchLookId = null;
+      let lastTouchLookPos = { x: 0, y: 0 };
+
+      canvas.addEventListener('touchstart', (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.clientX > window.innerWidth * 0.35 && touchLookId === null) {
+            touchLookId = touch.identifier;
+            lastTouchLookPos = { x: touch.clientX, y: touch.clientY };
+            break;
+          }
+        }
+      }, { passive: true });
+
+      canvas.addEventListener('touchmove', (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          const touch = e.changedTouches[i];
+          if (touch.identifier === touchLookId) {
+            const dx = touch.clientX - lastTouchLookPos.x;
+            const dy = touch.clientY - lastTouchLookPos.y;
+            lastTouchLookPos = { x: touch.clientX, y: touch.clientY };
+
+            cameraYaw -= dx * 0.005;
+            cameraPitch = Math.max(-0.5, Math.min(1.0, cameraPitch + dy * 0.005));
+            maybePublish();
+            break;
+          }
+        }
+      }, { passive: true });
+
+      const endTouchLook = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === touchLookId) {
+            touchLookId = null;
+            break;
+          }
+        }
+      };
+      canvas.addEventListener('touchend', endTouchLook, { passive: true });
+      canvas.addEventListener('touchcancel', endTouchLook, { passive: true });
+
+      // Botones táctiles móviles
+      if (mobileBtnJump) {
+        mobileBtnJump.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          if (isGrounded) {
+            playerVel.y = 9.5;
+            isGrounded = false;
+            playSound('jump');
+            maybePublish(true);
+          }
+        }, { passive: false });
+        mobileBtnJump.addEventListener('click', () => {
+          if (isGrounded) {
+            playerVel.y = 9.5;
+            isGrounded = false;
+            playSound('jump');
+            maybePublish(true);
+          }
+        });
+      }
+
+      if (mobileBtnEmote) {
+        mobileBtnEmote.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          emoteWheelModal.classList.toggle('active');
+        }, { passive: false });
+        mobileBtnEmote.addEventListener('click', () => {
+          emoteWheelModal.classList.toggle('active');
+        });
+      }
+
+      if (mobileBtnBocina) {
+        mobileBtnBocina.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          toggleSpeaker();
+        }, { passive: false });
+        mobileBtnBocina.addEventListener('click', () => {
+          toggleSpeaker();
+        });
+      }
+
       window.addEventListener('resize', () => {
         if (!renderer || !camera) return;
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -2471,23 +2942,78 @@
       updateOtherPlayers(dt);
       updateExpandingAuraRings(now, dt);
       updateFloatingAura3D(now, dt);
+      updateLeaderboard(now);
 
-      // Animación de rotación del círculo de aura y partículas que se elevan
-      function animateAuraRingAndParticles(ringGroup) {
+      // Generación pasiva de aura con la bocina de música activa (cada 3.5s)
+      if (isSpeakerEquipped && isSpeakerAudioPlaying) {
+        if (!window._lastSpeakerAuraTime || now - window._lastSpeakerAuraTime > 3500) {
+          window._lastSpeakerAuraTime = now;
+          const passiveGain = 40 + Math.floor(Math.random() * 5) * 15; // 40, 55, 70, 85, 100
+          auraCount += passiveGain;
+          hudAuraVal.textContent = auraCount.toLocaleString();
+          const pText = `+${passiveGain} AURA ⚡`;
+          lastLocalAuraGain = { text: pText, time: Date.now() };
+          spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, pText, '#00ff66');
+          maybePublish(true);
+        }
+      }
+
+      // Animación de rotación del círculo de aura y partículas que se elevan según el nivel de Aura
+      function animateAuraRingAndParticles(ringGroup, playerAura) {
         if (!ringGroup || !ringGroup.visible) return;
         const ud = ringGroup.userData;
         if (!ud) return;
 
+        const aura = playerAura || 0;
+
+        // Niveles de Aura:
+        // Tier 0: < 10,000 (Verde Neón base)
+        // Tier 1: >= 10,000 (Colores cambiantes Rainbow)
+        // Tier 2: >= 30,000 (FUEGO y llamas ardientes)
+        // Tier 3: >= 50,000 (ULTRA BURST multi-color con destellos)
+
+        let speedMultiplier = 1.0;
+
         if (ud.ring) {
-          ud.ring.rotation.z += 1.0 * dt;
+          if (aura >= 50000) {
+            // Tier 3: Ultra Burst Rainbow Supernova
+            const hue = (now * 0.0014) % 1;
+            ud.ring.material.color.setHSL(hue, 1.0, 0.55);
+            ud.ring.rotation.z += 2.8 * dt;
+            const pulse = 1.0 + Math.sin(now * 0.009) * 0.06;
+            ud.ring.scale.set(pulse, pulse, 1);
+            speedMultiplier = 2.4;
+          } else if (aura >= 30000) {
+            // Tier 2: Fuego ardiente
+            const fireFlicker = Math.sin(now * 0.02) * 0.08;
+            ud.ring.material.color.setRGB(1.0, 0.28 + fireFlicker, 0.0);
+            ud.ring.rotation.z += 2.0 * dt;
+            ud.ring.scale.set(1, 1, 1);
+            speedMultiplier = 1.85;
+          } else if (aura >= 10000) {
+            // Tier 1: Colores cambiantes suaves
+            const hue = (now * 0.0006) % 1;
+            ud.ring.material.color.setHSL(hue, 0.95, 0.55);
+            ud.ring.rotation.z += 1.4 * dt;
+            ud.ring.scale.set(1, 1, 1);
+            speedMultiplier = 1.3;
+          } else {
+            // Tier 0: Verde neón clásico
+            ud.ring.material.color.setHex(0x00ff66);
+            ud.ring.rotation.z += 1.0 * dt;
+            ud.ring.scale.set(1, 1, 1);
+            speedMultiplier = 1.0;
+          }
         }
 
         if (ud.particleData && ud.posAttr) {
           const pos = ud.posAttr.array;
+          const cols = ud.colorAttr ? ud.colorAttr.array : null;
+
           for (let i = 0; i < ud.particleData.length; i++) {
             const p = ud.particleData[i];
-            p.y += p.speedY * dt;
-            p.angle += p.rotSpeed * dt;
+            p.y += p.speedY * speedMultiplier * dt;
+            p.angle += p.rotSpeed * speedMultiplier * dt;
             if (p.y > 3.8) {
               p.y = 0.05;
               p.angle = Math.random() * Math.PI * 2;
@@ -2495,13 +3021,40 @@
             pos[i * 3] = Math.cos(p.angle) * p.r;
             pos[i * 3 + 1] = p.y;
             pos[i * 3 + 2] = Math.sin(p.angle) * p.r;
+
+            // Actualizar colores dinámicos de las partículas
+            if (cols) {
+              if (aura >= 50000) {
+                // Multi-color psicodélico intenso
+                const tempColor = new THREE.Color().setHSL((now * 0.001 + i * 0.04) % 1, 1.0, 0.65);
+                cols[i * 3] = tempColor.r;
+                cols[i * 3 + 1] = tempColor.g;
+                cols[i * 3 + 2] = tempColor.b;
+              } else if (aura >= 30000) {
+                // Partículas de fuego (Rojo, Naranja, Amarillo dorado)
+                const firePhase = (i % 3);
+                if (firePhase === 0) { cols[i * 3] = 1.0; cols[i * 3 + 1] = 0.2; cols[i * 3 + 2] = 0.0; } // Rojo llama
+                else if (firePhase === 1) { cols[i * 3] = 1.0; cols[i * 3 + 1] = 0.55; cols[i * 3 + 2] = 0.0; } // Naranja fuego
+                else { cols[i * 3] = 1.0; cols[i * 3 + 1] = 0.9; cols[i * 3 + 2] = 0.1; } // Amarillo núcleo
+              } else if (aura >= 10000) {
+                // Colores cambiantes arcoíris
+                const tempColor = new THREE.Color().setHSL((now * 0.0006 + i * 0.025) % 1, 0.95, 0.6);
+                cols[i * 3] = tempColor.r;
+                cols[i * 3 + 1] = tempColor.g;
+                cols[i * 3 + 2] = tempColor.b;
+              } else {
+                // Verde neón
+                cols[i * 3] = 0.0; cols[i * 3 + 1] = 1.0; cols[i * 3 + 2] = 0.4;
+              }
+            }
           }
           ud.posAttr.needsUpdate = true;
+          if (ud.colorAttr) ud.colorAttr.needsUpdate = true;
         }
       }
-      animateAuraRingAndParticles(playerAuraRingMesh);
+      animateAuraRingAndParticles(playerAuraRingMesh, auraCount);
       for (const id in otherPlayers) {
-        animateAuraRingAndParticles(otherPlayers[id].auraRingMesh);
+        animateAuraRingAndParticles(otherPlayers[id].auraRingMesh, otherPlayers[id].data?.aura || 0);
       }
 
       // Detectar si hay CUALQUIER bocina sonando cerca (local o de otro jugador)
@@ -2595,6 +3148,14 @@
       }
     }
 
+    let cameraShakeIntensity = 0;
+    let cameraShakeEndTime = 0;
+
+    function triggerCameraShake(intensity = 0.28, duration = 250) {
+      cameraShakeIntensity = Math.max(cameraShakeIntensity, intensity);
+      cameraShakeEndTime = performance.now() + duration;
+    }
+
     function updateCamera() {
       if (isThirdPerson) {
         const dist = 6.0;
@@ -2618,6 +3179,15 @@
         if (playerBillboardMesh) playerBillboardMesh.visible = false;
         if (playerSpeakerMesh) playerSpeakerMesh.visible = false;
         if (fpSpeakerMesh) fpSpeakerMesh.visible = isSpeakerEquipped;
+      }
+
+      // Efecto de temblor / vibración de cámara al recibir o dar un golpe crítico fuerte
+      if (camera && performance.now() < cameraShakeEndTime && cameraShakeIntensity > 0) {
+        const factor = Math.max(0, (cameraShakeEndTime - performance.now()) / 250);
+        const currentShake = cameraShakeIntensity * factor;
+        camera.position.x += (Math.random() - 0.5) * currentShake;
+        camera.position.y += (Math.random() - 0.5) * currentShake;
+        camera.position.z += (Math.random() - 0.5) * currentShake;
       }
     }
 
@@ -2836,8 +3406,6 @@
 
     /* ══ SISTEMA DE NÚMEROS FLOTANTES DE AURA EN 3D ══ */
     const floatingAura3DMeshes = [];
-    let lastLocalAuraGain = null;
-
     function spawnFloatingAura3D(x, y, z, text, color = '#ffe600') {
       if (!scene) return;
       const canvas = document.createElement('canvas');
@@ -2906,9 +3474,62 @@
       }
     }
 
+    /* ══ TABLA DE CLASIFICACIÓN / LEADERBOARD MULTIJUGADOR ══ */
+    let lastLeaderboardUpdate = 0;
+    function updateLeaderboard(now) {
+      if (now - lastLeaderboardUpdate < 400) return;
+      lastLeaderboardUpdate = now;
+
+      const leaderboardList = document.getElementById('leaderboardList');
+      const leaderboardCount = document.getElementById('leaderboardCount');
+      if (!leaderboardList) return;
+
+      const list = [];
+      list.push({
+        id: myId,
+        name: selectedChar.name || 'Tú',
+        skin: selectedChar.image || IMG_PLAYER,
+        aura: auraCount,
+        isLocal: true
+      });
+
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        list.push({
+          id: id,
+          name: op.data?.name || 'Fighter',
+          skin: op.data?.skin || IMG_PLAYER,
+          aura: op.data?.aura || 0,
+          isLocal: false
+        });
+      }
+
+      list.sort((a, b) => b.aura - a.aura);
+
+      if (leaderboardCount) {
+        leaderboardCount.textContent = `${list.length} ${list.length === 1 ? 'PLAYER' : 'PLAYERS'}`;
+      }
+
+      leaderboardList.innerHTML = list.slice(0, 8).map((p, idx) => {
+        const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
+        const safeName = (p.name || 'Fighter').replace(/</g, '&lt;');
+        const auraFmt = (p.aura || 0).toLocaleString();
+        return `
+          <div class="hud-leaderboard-item ${p.isLocal ? 'is-me' : ''}">
+            <span class="hud-leaderboard-rank ${rankClass}">#${idx + 1}</span>
+            <div class="hud-leaderboard-user">
+              <div class="hud-leaderboard-avatar" style="background-image:url('${resolveUrl(p.skin)}')"></div>
+              <span class="hud-leaderboard-name">${safeName}</span>
+            </div>
+            <span class="hud-leaderboard-aura">${auraFmt} ⚡</span>
+          </div>
+        `;
+      }).join('');
+    }
+
     function collectAuraNode(node) {
       playSound('farm');
-      const bonus = node.pos.val || 200;
+      const bonus = (node.pos.val || 200) + Math.floor(Math.random() * 6) * 50; // 200, 250, 300, 350, 400, 450
       auraCount += bonus;
       hudAuraVal.textContent = auraCount.toLocaleString();
 
@@ -2924,7 +3545,7 @@
       maybePublish(true);
     }
 
-    /* ── HUD FARM BUTTON (FARMEAR AURA + EMOTE ALEATORIO) ══ */
+    /* ── HUD FARM BUTTON (FARMEAR AURA DINÁMICO + EMOTE ALEATORIO) ══ */
     function playRandomEmoteForChar() {
       if (isEmotePlaying) return;
 
@@ -2936,23 +3557,60 @@
       }
     }
 
+    function triggerCritImpactVisual(text = '💥 ¡GOLPE CRÍTICO!') {
+      const flash = document.getElementById('critImpactFlash');
+      const banner = document.getElementById('critBannerPopup');
+      if (flash) {
+        flash.classList.remove('active');
+        void flash.offsetWidth;
+        flash.classList.add('active');
+      }
+      if (banner) {
+        banner.textContent = text;
+        banner.classList.remove('active');
+        void banner.offsetWidth;
+        banner.classList.add('active');
+      }
+    }
+
     function doFarmAura() {
       playSound('farm');
-      const gain = 100;
+      
+      // Ganancia dinámica variable de aura con probabilidad de golpe crítico (15%)
+      const isCrit = Math.random() < 0.15;
+      let gain = 100 + Math.floor(Math.random() * 8) * 25; // 100, 125, 150, 175, 200, 225, 250, 275
+      if (isCrit) {
+        gain = Math.floor(gain * 2.0);
+      }
+
       auraCount += gain;
       hudAuraVal.textContent = auraCount.toLocaleString();
 
-      const text = `+${gain} AURA ⚡`;
+      const text = isCrit ? `💥 +${gain} AURA ⚡` : `+${gain} AURA ⚡`;
+      const textColor = isCrit ? '#ff0055' : '#ffe600';
       lastLocalAuraGain = { text: text, time: Date.now() };
 
+      // Si es golpe crítico: vibrar la pantalla local, flash de impacto y sincronizar impacto al multijugador
+      if (isCrit) {
+        triggerCameraShake(0.38, 300);
+        triggerCritImpactVisual('💥 ¡GOLPE CRÍTICO!');
+        lastLocalCritHit = { time: Date.now(), x: playerPos.x, y: playerPos.y, z: playerPos.z };
+        playSound('select');
+      }
+
+      // A partir de 50k: soltar los círculos de colores de aura expansivos al spamear
+      if (auraCount >= 50000) {
+        spawnBigAuraRing(playerPos.x, playerPos.z);
+      }
+
       spawnFloatingAura(text);
-      spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, text, '#ffe600');
+      spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, text, textColor);
 
       if (!isEmotePlaying) {
         playRandomEmoteForChar();
       }
 
-      maybePublish(true);
+      maybePublish(isCrit);
     }
 
     hudFarmOrb.addEventListener('click', doFarmAura);
