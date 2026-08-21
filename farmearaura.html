@@ -1,0 +1,2974 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>FARMEAR AURA 3D - Battle Royale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Press Start 2P', cursive;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      background-color: #060913;
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+    }
+
+    /* Screen Viewport - Optimizado */
+    .viewport {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #151828 0%, #060913 100%);
+    }
+
+    /* CRT Scanline & Vignette Effect (Activado por defecto) */
+    .crt-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%),
+                  radial-gradient(circle at center, rgba(0,0,0,0) 65%, rgba(0,0,0,0.45) 100%);
+      background-size: 100% 4px, 100% 100%;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.65;
+      transition: opacity 0.2s ease;
+    }
+
+    .crt-overlay.disabled {
+      display: none !important;
+    }
+
+    /* Botón flotante para alternar CRT en menú */
+    .crt-toggle-menu {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(12, 18, 38, 0.85);
+      border: 2px solid #00f0ff;
+      color: #00ff66;
+      padding: 8px 14px;
+      font-size: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 30;
+      transition: all 0.15s ease;
+    }
+    .crt-toggle-menu:hover {
+      background: #00f0ff;
+      color: #000;
+    }
+
+    /* Screen Styles */
+    .screen {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 25px;
+      box-sizing: border-box;
+      z-index: 10;
+      transform: translateZ(0);
+      will-change: opacity, transform;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98);
+    }
+
+    /* ================= START SCREEN ================= */
+    #start-screen {
+      gap: 20px;
+      text-align: center;
+    }
+
+    .game-title-container {
+      margin-bottom: 5px;
+    }
+
+    .game-title {
+      font-size: clamp(30px, 4.5vw, 50px);
+      line-height: 1.25;
+      color: #fff;
+      text-shadow: 
+        3px 3px 0px #bd00ff,
+        -3px -3px 0px #00f0ff;
+      letter-spacing: 3px;
+    }
+
+    .game-subtitle {
+      font-size: clamp(10px, 1.5vw, 14px);
+      color: #ffe600;
+      margin-top: 12px;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0px #000;
+    }
+
+    .firebase-status {
+      font-size: 10px;
+      color: #00ff66;
+      background: rgba(0, 255, 102, 0.12);
+      border: 1px solid rgba(0, 255, 102, 0.4);
+      padding: 6px 14px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #00ff66;
+      border-radius: 50%;
+    }
+
+    .btn-start {
+      background: linear-gradient(180deg, #00f0ff 0%, #0072ff 100%);
+      color: #ffffff;
+      border: 3px solid #ffffff;
+      padding: 18px 42px;
+      font-size: clamp(16px, 2vw, 22px);
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #003b8e;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      text-shadow: 2px 2px 0 #000;
+      margin-top: 15px;
+    }
+
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 0 #003b8e;
+      background: linear-gradient(180deg, #33f3ff 0%, #1a82ff 100%);
+    }
+
+    .btn-start:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #003b8e;
+    }
+
+    .credits {
+      position: absolute;
+      bottom: 20px;
+      font-size: clamp(8px, 1.2vw, 11px);
+      color: #6a7191;
+      text-align: center;
+      width: 100%;
+      pointer-events: none;
+    }
+
+    /* ================= CHARACTER SELECT SCREEN ================= */
+    #select-screen {
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 25px;
+      padding: 65px 35px 35px 35px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .grid-wrapper {
+      width: 58%;
+      height: 100%;
+      max-height: calc(100vh - 110px);
+      display: flex;
+      flex-direction: column;
+      background: rgba(12, 18, 38, 0.85);
+      border: 2px solid rgba(0, 240, 255, 0.35);
+      border-radius: 14px;
+      padding: 15px;
+      overflow: hidden;
+    }
+
+    .grid-header {
+      font-size: 12px;
+      color: #00f0ff;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .grid-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 10px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .grid-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .grid-container::-webkit-scrollbar-thumb {
+      background: #00f0ff;
+      border-radius: 3px;
+    }
+
+    .character-card {
+      background: rgba(18, 26, 52, 0.9);
+      border: 2px solid rgba(0, 240, 255, 0.4);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.1s ease, border-color 0.1s ease;
+      overflow: hidden;
+      height: 115px;
+      padding: 6px;
+    }
+
+    .character-card:hover, .character-card.selected {
+      border-color: #ffffff;
+      transform: translateY(-2px);
+      background: rgba(0, 150, 255, 0.3);
+    }
+
+    .character-avatar {
+      width: 100%;
+      height: 65px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .character-avatar img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .character-avatar .avatar-emoji {
+      font-size: 30px;
+    }
+
+    .character-card-name {
+      font-size: 8px;
+      color: #fff;
+      margin-top: 5px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      text-shadow: 1px 1px #000;
+    }
+
+    .character-card.selected .character-card-name {
+      color: #ffe600;
+    }
+
+    .preview-panel {
+      width: 40%;
+      height: 100%;
+      max-height: calc(100vh - 110px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      background: rgba(12, 18, 38, 0.85);
+      border: 2px solid rgba(0, 240, 255, 0.35);
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .select-title {
+      font-size: 15px;
+      text-align: center;
+      color: #e0f7fc;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .portrait-box {
+      width: 90px;
+      height: 90px;
+      border: 3px solid #00f0ff;
+      border-radius: 10px;
+      background: #081026;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 8px auto;
+      overflow: hidden;
+    }
+
+    .portrait-box img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .portrait-box .avatar-emoji {
+      font-size: 40px;
+    }
+
+    .character-name {
+      font-size: 15px;
+      color: #ffe600;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .aura-stat {
+      font-size: 10px;
+      color: #00ff66;
+      margin-bottom: 6px;
+    }
+
+    .full-sprite {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-height: 180px;
+    }
+
+    .full-sprite img {
+      max-height: 160px;
+      max-width: 90%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .full-sprite .avatar-emoji {
+      font-size: 70px;
+    }
+
+    .btn-play {
+      background: #ff0055;
+      color: #ffffff;
+      border: 3px solid #ffffff;
+      padding: 13px 24px;
+      font-size: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #990033;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      text-shadow: 2px 2px #000000;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .btn-play:hover {
+      background: #ff2a75;
+      transform: translateY(-2px);
+      box-shadow: 0 7px 0 #990033;
+    }
+
+    .btn-play:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #990033;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 20;
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: #00f0ff;
+    }
+
+    /* ================= 3D GAMEPLAY SCREEN ================= */
+    #game-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 50;
+    }
+
+    #game-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 3D Game HUD */
+    .game-hud {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      z-index: 60;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .hud-player-card {
+      background: rgba(8, 12, 28, 0.85);
+      border: 2px solid #00f0ff;
+      border-radius: 10px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .hud-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #000;
+      border: 2px solid #ffe600;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hud-avatar img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .hud-aura-counter {
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff66;
+      border-radius: 12px;
+      padding: 8px 22px;
+      text-align: center;
+    }
+
+    .hud-aura-val {
+      font-size: clamp(18px, 3.5vw, 30px);
+      color: #00ff66;
+    }
+
+    .hud-aura-sub {
+      font-size: 8px;
+      color: #ffe600;
+      margin-top: 3px;
+    }
+
+    .hud-top-right {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .hud-btn {
+      background: rgba(12, 18, 38, 0.85);
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .hud-btn:hover {
+      background: #00f0ff;
+      color: #000;
+      border-color: #00f0ff;
+    }
+
+    .hud-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      width: 100%;
+    }
+
+    .hud-controls-hint {
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 8px;
+      color: #b0bcd0;
+      line-height: 1.5;
+    }
+
+    .hud-controls-hint b {
+      color: #00f0ff;
+    }
+
+    .hud-farm-orb {
+      background: radial-gradient(circle, #bd00ff 0%, #4c00ff 100%);
+      border: 4px solid #fff;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(189, 0, 255, 0.6);
+      transition: transform 0.05s ease;
+      pointer-events: auto;
+    }
+
+    .hud-farm-orb:hover {
+      transform: scale(1.04);
+    }
+
+    .hud-farm-orb:active {
+      transform: scale(0.94);
+    }
+
+    /* Emote Wheel Modal */
+    #emoteWheelModal, #bocinaMusicModal {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    #emoteWheelModal.active, #bocinaMusicModal.active {
+      display: flex !important;
+    }
+
+    .emote-wheel-box {
+      width: 420px;
+      max-width: 90vw;
+      background: rgba(12, 18, 38, 0.95);
+      border: 2px solid #00f0ff;
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .emote-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-height: 260px;
+      overflow-y: auto;
+      margin: 12px 0;
+      padding-right: 4px;
+    }
+
+    .emote-card {
+      background: rgba(22, 32, 60, 0.85);
+      border: 2px solid rgba(0, 240, 255, 0.35);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .emote-card:hover {
+      border-color: #ffe600;
+      background: rgba(0, 240, 255, 0.2);
+    }
+
+    .emote-icon {
+      font-size: 24px;
+    }
+    .emote-icon img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .emote-name {
+      font-size: 7px;
+      color: #ffe600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+
+    /* Emote Video Banner */
+    #emoteVideoOverlay {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #bd00ff;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 9px;
+      color: #ffe600;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 70;
+    }
+
+    #emoteVideoOverlay.active {
+      display: flex;
+    }
+
+    .crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* Floating aura numbers */
+    .aura-float-num {
+      position: absolute;
+      font-size: 13px;
+      color: #ffe600;
+      font-weight: bold;
+      pointer-events: none;
+      animation: floatAura 0.7s ease-out forwards;
+      text-shadow: 2px 2px 0 #000;
+      z-index: 120;
+    }
+
+    @keyframes floatAura {
+      0% { opacity: 1; transform: translate(0, 0); }
+      100% { opacity: 0; transform: translate(var(--tx, 0px), -50px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay de Efecto CRT (Activado por defecto) -->
+  <div class="crt-overlay" id="crtOverlay"></div>
+
+  <div class="viewport">
+    <!-- 1. PANTALLA DE INICIO (START SCREEN) -->
+    <div class="screen" id="start-screen">
+      <button class="crt-toggle-menu" id="crtToggleMenuBtn">📺 CRT: ON</button>
+
+      <div class="game-title-container">
+        <h1 class="game-title">FARMEAR<br>AURA 3D</h1>
+        <p class="game-subtitle">⚡ EDICIÓN BATTLE ROYALE ⚡</p>
+      </div>
+
+      <div class="firebase-status" id="firebase-status">
+        <span class="status-dot"></span>
+        <span id="firebase-status-text">Conectando a Firebase...</span>
+      </div>
+
+      <button class="btn-start" id="start-btn">PRESIONA START</button>
+
+      <div class="credits">2026 - FARMEAR AURA 3D &bull; MAPA PLANO OPTIMIZADO</div>
+    </div>
+
+    <!-- 2. PANTALLA SELECCIÓN DE PERSONAJE -->
+    <div class="screen hidden" id="select-screen">
+      <button class="btn-back" id="back-to-start">◄ INICIO</button>
+      <button class="crt-toggle-menu" id="crtToggleSelectBtn">📺 CRT: ON</button>
+
+      <div class="grid-wrapper">
+        <div class="grid-header">
+          <span>ELIGE TU FIGHTER</span>
+          <span id="chars-count" style="color: #ffe600; font-size: 9px;">Cargando...</span>
+        </div>
+        <div class="grid-container" id="grid"></div>
+      </div>
+
+      <div class="preview-panel">
+        <div style="width: 100%; text-align: center;">
+          <h2 class="select-title">FIGHTER SELECCIONADO</h2>
+          
+          <div class="portrait-box" id="preview-portrait"></div>
+          <div class="character-name" id="preview-name">DEFAULT</div>
+          <div class="aura-stat" id="preview-aura">AURA: +9999</div>
+        </div>
+
+        <div class="full-sprite" id="preview-full"></div>
+
+        <button class="btn-play" id="play-btn">ENTRAR AL MUNDO 3D</button>
+      </div>
+    </div>
+
+    <!-- 3. MUNDO 3D GAMEPLAY -->
+    <div id="game-container">
+      <canvas id="game-canvas"></canvas>
+      <div class="crosshair"></div>
+
+      <!-- Emote Video element (for Texture and Audio) -->
+      <video id="emoteVideo" playsinline loop crossorigin="anonymous" style="display:none;"></video>
+
+      <!-- Emote active banner -->
+      <div id="emoteVideoOverlay">
+        <span>🕺 BAILANDO: <b id="currentEmoteName">DANCE</b></span>
+        <button id="stopEmoteBtn" style="background:#ff0055;border:none;color:#fff;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:8px;">PARAR (WASD)</button>
+      </div>
+
+      <!-- HUD 3D -->
+      <div class="game-hud">
+        <div class="hud-top">
+          <div class="hud-player-card">
+            <div class="hud-avatar" id="hud-char-avatar"></div>
+            <div>
+              <div style="font-size: 9px; color: #fff;" id="hud-char-name">DEFAULT</div>
+              <div style="font-size: 7px; color: #00ff66; margin-top: 2px;">FIGHTER 3D</div>
+            </div>
+          </div>
+
+          <div class="hud-aura-counter">
+            <div class="hud-aura-val" id="hud-aura-val">0</div>
+            <div class="hud-aura-sub" id="hud-aura-rate">+100 AURA POR CLIC / NODO</div>
+          </div>
+
+          <div class="hud-top-right">
+            <button class="hud-btn" id="crtToggleHudBtn">📺 CRT: ON</button>
+            <button class="hud-btn" id="openEmoteBtn">🕺 EMOTES (B)</button>
+            <button class="hud-btn" id="camToggleBtn">🎥 CÁMARA (V)</button>
+            <button class="hud-btn" id="exit3dBtn" style="border-color:#ff4444;color:#ff8888;">◄ SALIR</button>
+          </div>
+        </div>
+
+        <div class="hud-bottom">
+          <div class="hud-controls-hint">
+            <b>[W,A,S,D]</b> Moverse &bull; <b>[ESPACIO]</b> Saltar &bull; <b>[SHIFT]</b> Correr<br>
+            <b>[CLICK]</b> Vista 3D &bull; <b>[B]</b> Emotes &bull; <b>[E / CLIC]</b> Farmear Aura
+          </div>
+
+          <div class="hud-farm-orb" id="hud-farm-orb">
+            <span style="font-size: 24px;">⚡</span>
+            <span style="font-size: 9px; color: #fff; margin-top: 3px;">¡FARM!</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emote Selector Modal -->
+      <div id="emoteWheelModal">
+        <div class="emote-wheel-box">
+          <h3 style="color:#00f0ff;font-size:13px;letter-spacing:1px;margin-bottom:6px;">SELECCIONA UN EMOTE</h3>
+          <p style="font-size:8px;color:#a0aabf;">Baila en 3D con música y efectos</p>
+          
+          <div class="emote-grid" id="emotesGridContainer"></div>
+
+          <button id="closeEmotesModal" class="btn-play" style="background:#334;margin-top:5px;padding:8px;">CERRAR (ESC)</button>
+        </div>
+      </div>
+
+      <!-- Bocina Music Modal -->
+      <div id="bocinaMusicModal">
+        <div class="emote-wheel-box" style="width:490px;max-width:92vw;border-color:#bd00ff;box-shadow:0 0 25px rgba(189,0,255,0.4);">
+          <h3 style="color:#e888ff;font-size:13px;letter-spacing:1px;margin-bottom:6px;">📻 REPRODUCTOR DE BOCINA</h3>
+          <p style="font-size:8px;color:#a0aabf;margin-bottom:12px;">Pega un link de audio (GitHub, MP3) y todos lo escucharán en 3D:</p>
+          
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <input id="speakerMusicInput" type="text" value="https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3" placeholder="https://.../musica.mp3" style="flex:1;background:#090d1c;border:2px solid #bd00ff;border-radius:6px;padding:8px 10px;color:#00ff66;font-size:8px;outline:none;" />
+          </div>
+
+          <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
+            <button id="presetAuraPhonkBtn" style="background:rgba(189,0,255,0.25);border:1px solid #bd00ff;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:7px;">⚡ Aura Phonk (GitHub)</button>
+          </div>
+
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
+            <button id="playMusicBtn" class="btn-play" style="background:#00cc66;box-shadow:0 4px 0 #007733;padding:9px 14px;font-size:9px;margin:0;width:auto;">▶️ REPRODUCIR</button>
+            <button id="pauseMusicBtn" class="btn-play" style="background:#ff9900;box-shadow:0 4px 0 #995500;padding:9px 14px;font-size:9px;margin:0;width:auto;">⏸️ PAUSAR</button>
+            <button id="stopMusicBtn" class="btn-play" style="background:#ff0055;box-shadow:0 4px 0 #990033;padding:9px 14px;font-size:9px;margin:0;width:auto;">⏹️ DETENER</button>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(20,25,45,0.7);padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:8px;">
+            <span style="color:#a0aabf;">VOLUMEN:</span>
+            <input id="speakerVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.7" style="flex:1;margin:0 10px;cursor:pointer;" />
+            <span id="speakerVolumeVal" style="color:#00f0ff;">70%</span>
+          </div>
+
+          <div id="musicModalStatus" style="font-size:8px;color:#a0aabf;margin-bottom:10px;padding:6px;background:rgba(0,0,0,0.5);border-radius:6px;">
+            <span style="color:#ff6666;">⏹️ DETENIDO</span>
+          </div>
+
+          <button id="closeMusicModal" class="btn-play" style="background:#2d334d;box-shadow:0 4px 0 #181c2b;margin-top:2px;padding:8px;width:100%;">CERRAR (H / ESC)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, set, onValue, onDisconnect, remove, get, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    /* ══ FIREBASE CONFIG ══ */
+    const FB_CONFIG = {
+      apiKey: "AIzaSyCw0v9mVUpOO8HYYfHLhyzkgIMfoBljJcQ",
+      authDomain: "fortnite-8012b.firebaseapp.com",
+      databaseURL: "https://fortnite-8012b-default-rtdb.firebaseio.com",
+      projectId: "fortnite-8012b",
+      storageBucket: "fortnite-8012b.firebasestorage.app",
+      messagingSenderId: "862924450554",
+      appId: "1:862924450554:web:b01ab7f85afa7965c2f743"
+    };
+
+    const IMG_PLAYER = "https://raw.githubusercontent.com/yoyoyogogo/png/main/yespis.png";
+
+    function resolveUrl(url) {
+      if (!url) return '';
+      if (url.includes('github.com/') && url.includes('/blob/')) {
+        url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
+      }
+      return (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))
+        ? url
+        : 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + url;
+    }
+
+    /* ══ AUDIO SYNTHESIZER ══ */
+    let audioCtx = null;
+    let currentVoiceAudio = null;
+
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'hover') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.04);
+          gain.gain.setValueAtTime(0.03, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.04);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.04);
+        } else if (type === 'select') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(280, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(680, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.06, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.1);
+        } else if (type === 'farm') {
+          osc.type = 'square';
+          const baseFreq = 260 + Math.random() * 150;
+          osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+          osc.frequency.setValueAtTime(baseFreq * 1.5, ctx.currentTime + 0.03);
+          gain.gain.setValueAtTime(0.05, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.06);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.06);
+        } else if (type === 'jump') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(200, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(480, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.05, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.08);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.08);
+        }
+      } catch (e) {}
+    }
+
+    function playSkinAudio(audioPath) {
+      if (!audioPath) return;
+      if (currentVoiceAudio) {
+        currentVoiceAudio.pause();
+        currentVoiceAudio = null;
+      }
+      try {
+        const audio = new Audio(resolveUrl(audioPath));
+        audio.volume = 0.6;
+        audio.play().catch(() => {});
+        currentVoiceAudio = audio;
+      } catch (e) {}
+    }
+
+    /* ══ DEFAULT DATA ══ */
+    const DEFAULT_SKIN = {
+      name: 'Default',
+      image: IMG_PLAYER,
+      icon: 'https://p7.hiclipart.com/preview/52/626/377/nicolas-maduro-broadcaster-caracas-el-mundo-singer-kersti-kaljulaid.jpg',
+      audio: 'yespis.mp3',
+      aura: '+9999',
+      unlocked: true
+    };
+
+    let characters = [DEFAULT_SKIN];
+    let rawEmotes = [];
+    let selectedChar = characters[0];
+    let auraCount = 0;
+    try { localStorage.removeItem('farmear_aura_points'); } catch (e) {}
+
+    /* ══ DOM ELEMENTS ══ */
+    const startScreen = document.getElementById('start-screen');
+    const selectScreen = document.getElementById('select-screen');
+    const gameContainer = document.getElementById('game-container');
+    const firebaseStatusText = document.getElementById('firebase-status-text');
+    const charsCountEl = document.getElementById('chars-count');
+
+    const startBtn = document.getElementById('start-btn');
+    const backToStartBtn = document.getElementById('back-to-start');
+    const playBtn = document.getElementById('play-btn');
+    const exit3dBtn = document.getElementById('exit3dBtn');
+    const camToggleBtn = document.getElementById('camToggleBtn');
+    const openEmoteBtn = document.getElementById('openEmoteBtn');
+
+    const grid = document.getElementById('grid');
+    const previewPortrait = document.getElementById('preview-portrait');
+    const previewName = document.getElementById('preview-name');
+    const previewAura = document.getElementById('preview-aura');
+    const previewFull = document.getElementById('preview-full');
+
+    const hudCharAvatar = document.getElementById('hud-char-avatar');
+    const hudCharName = document.getElementById('hud-char-name');
+    const hudAuraVal = document.getElementById('hud-aura-val');
+    const hudFarmOrb = document.getElementById('hud-farm-orb');
+
+    const emoteWheelModal = document.getElementById('emoteWheelModal');
+    const emotesGridContainer = document.getElementById('emotesGridContainer');
+    const closeEmotesModal = document.getElementById('closeEmotesModal');
+    const emoteVideo = document.getElementById('emoteVideo');
+    const emoteVideoOverlay = document.getElementById('emoteVideoOverlay');
+    const currentEmoteNameEl = document.getElementById('currentEmoteName');
+    const stopEmoteBtn = document.getElementById('stopEmoteBtn');
+    const bocinaToggleBtn = document.getElementById('bocinaToggleBtn');
+    const bocinaMusicBtn = document.getElementById('bocinaMusicBtn');
+    const bocinaMusicModal = document.getElementById('bocinaMusicModal');
+    const speakerMusicInput = document.getElementById('speakerMusicInput');
+    const presetAuraPhonkBtn = document.getElementById('presetAuraPhonkBtn');
+    const playMusicBtn = document.getElementById('playMusicBtn');
+    const pauseMusicBtn = document.getElementById('pauseMusicBtn');
+    const stopMusicBtn = document.getElementById('stopMusicBtn');
+    const speakerVolumeSlider = document.getElementById('speakerVolumeSlider');
+    const speakerVolumeVal = document.getElementById('speakerVolumeVal');
+    const musicModalStatus = document.getElementById('musicModalStatus');
+    const closeMusicModal = document.getElementById('closeMusicModal');
+
+    /* ══ BOCINA (SPEAKER) SYSTEM ══ */
+    const SPEAKER_IMG_URL = "https://raw.githubusercontent.com/farmearaura/farmearaura.github.io/main/bocina.png";
+    let speakerTexture = null;
+    let isSpeakerEquipped = false;
+    let playerSpeakerMesh = null;
+    let fpSpeakerMesh = null;
+    let playerAuraRingMesh = null;
+
+    // Bocina Music Player
+    const localSpeakerAudio = new Audio();
+    localSpeakerAudio.loop = true;
+    localSpeakerAudio.crossOrigin = "anonymous";
+    let isSpeakerAudioPlaying = false;
+    let speakerMusicUrl = "https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3";
+    let speakerVolume = 0.7;
+
+    function playSpeakerAudio(url) {
+      if (url) speakerMusicUrl = url.trim();
+      if (!isSpeakerEquipped) {
+        isSpeakerEquipped = true;
+        updateSpeakerVisuals();
+      }
+
+      // Si estoy bailando un emote, bajar suavemente el volumen del emote de fondo (sin pausar)
+      if (isEmotePlaying && emoteVideo) {
+        emoteVideo.muted = false;
+        emoteVideo.volume = 0.15;
+      }
+
+      const resolved = resolveUrl(speakerMusicUrl);
+      if (localSpeakerAudio.src !== resolved) {
+        localSpeakerAudio.src = resolved;
+      }
+      localSpeakerAudio.volume = speakerVolume;
+      localSpeakerAudio.play().then(() => {
+        isSpeakerAudioPlaying = true;
+        updateSpeakerMusicStatus();
+        maybePublish(true);
+      }).catch(err => {
+        console.warn('Speaker audio play error:', err);
+        isSpeakerAudioPlaying = false;
+        updateSpeakerMusicStatus();
+      });
+
+      playSound('select');
+      spawnFloatingAura('🎵 MÚSICA ACTIVADA');
+    }
+
+    function pauseSpeakerAudio() {
+      localSpeakerAudio.pause();
+      isSpeakerAudioPlaying = false;
+      // Si sigo en emote, restaurar volumen normal del emote
+      if (isEmotePlaying && emoteVideo) {
+        emoteVideo.muted = false;
+        emoteVideo.volume = 0.7;
+      }
+      updateSpeakerMusicStatus();
+      maybePublish(true);
+      playSound('hover');
+    }
+
+    function stopSpeakerAudio() {
+      localSpeakerAudio.pause();
+      localSpeakerAudio.currentTime = 0;
+      isSpeakerAudioPlaying = false;
+      if (isEmotePlaying && emoteVideo) {
+        emoteVideo.muted = false;
+        emoteVideo.volume = 0.7;
+      }
+      updateSpeakerMusicStatus();
+      maybePublish(true);
+      playSound('hover');
+      spawnFloatingAura('⏹️ MÚSICA DETENIDA');
+    }
+
+    function updateSpeakerMusicStatus() {
+      const fileName = speakerMusicUrl.split('/').pop() || 'auraphonk.mp3';
+
+      if (isSpeakerAudioPlaying) {
+        if (musicModalStatus) {
+          musicModalStatus.innerHTML = `<span style="color:#00ff66;">▶️ REPRODUCIENDO</span>: <b style="color:#ffe600;">${fileName}</b>`;
+        }
+        if (bocinaMusicBtn) {
+          bocinaMusicBtn.textContent = '🎵 MÚSICA: ON (H)';
+          bocinaMusicBtn.style.borderColor = '#00ff66';
+          bocinaMusicBtn.style.color = '#00ff66';
+          bocinaMusicBtn.style.background = 'rgba(0, 255, 102, 0.25)';
+          bocinaMusicBtn.style.boxShadow = '0 0 10px rgba(0,255,102,0.5)';
+        }
+      } else {
+        if (musicModalStatus) {
+          musicModalStatus.innerHTML = '<span style="color:#ff6666;">⏹️ DETENIDO</span>';
+        }
+        if (bocinaMusicBtn) {
+          bocinaMusicBtn.textContent = '🎵 MÚSICA (H)';
+          bocinaMusicBtn.style.borderColor = '#bd00ff';
+          bocinaMusicBtn.style.color = '#e888ff';
+          bocinaMusicBtn.style.background = 'rgba(12, 18, 38, 0.85)';
+          bocinaMusicBtn.style.boxShadow = 'none';
+        }
+      }
+    }
+
+    if (playMusicBtn) {
+      playMusicBtn.addEventListener('click', () => {
+        const val = speakerMusicInput.value.trim() || speakerMusicUrl;
+        playSpeakerAudio(val);
+      });
+    }
+
+    if (pauseMusicBtn) {
+      pauseMusicBtn.addEventListener('click', pauseSpeakerAudio);
+    }
+
+    if (stopMusicBtn) {
+      stopMusicBtn.addEventListener('click', stopSpeakerAudio);
+    }
+
+    if (presetAuraPhonkBtn) {
+      presetAuraPhonkBtn.addEventListener('click', () => {
+        const phonkUrl = "https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3";
+        speakerMusicInput.value = phonkUrl;
+        playSpeakerAudio(phonkUrl);
+      });
+    }
+
+    if (speakerVolumeSlider) {
+      speakerVolumeSlider.addEventListener('input', (e) => {
+        speakerVolume = parseFloat(e.target.value);
+        localSpeakerAudio.volume = speakerVolume;
+        if (speakerVolumeVal) {
+          speakerVolumeVal.textContent = Math.round(speakerVolume * 100) + '%';
+        }
+      });
+    }
+
+    if (closeMusicModal) {
+      closeMusicModal.addEventListener('click', () => {
+        bocinaMusicModal.classList.remove('active');
+      });
+    }
+
+    if (bocinaMusicBtn) {
+      bocinaMusicBtn.addEventListener('click', () => {
+        playSound('select');
+        document.exitPointerLock();
+        bocinaMusicModal.classList.toggle('active');
+      });
+    }
+
+    function createFallbackSpeakerCanvas() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, 256, 256);
+
+      // Handle
+      ctx.fillStyle = '#1e2433';
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.roundRect(70, 20, 116, 40, 10);
+      ctx.stroke();
+      ctx.fill();
+      ctx.clearRect(86, 36, 84, 30);
+
+      // Boombox Body
+      const grad = ctx.createLinearGradient(20, 50, 236, 220);
+      grad.addColorStop(0, '#1c2237');
+      grad.addColorStop(1, '#0c101c');
+      ctx.fillStyle = grad;
+      ctx.strokeStyle = '#ff0077';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.roundRect(20, 55, 216, 175, 18);
+      ctx.fill();
+      ctx.stroke();
+
+      // Top panel
+      ctx.fillStyle = '#070a14';
+      ctx.fillRect(35, 70, 186, 36);
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(35, 70, 186, 36);
+
+      // Equalizer bars
+      const eqCols = ['#00ff66', '#00f0ff', '#ffe600', '#ff0055', '#bd00ff'];
+      for (let i = 0; i < 11; i++) {
+        const h = 8 + ((i * 5) % 18);
+        ctx.fillStyle = eqCols[i % eqCols.length];
+        ctx.fillRect(44 + i * 15, 100 - h, 9, h);
+      }
+
+      // Cones
+      drawSpeakerCone(ctx, 76, 162, 42, '#00f0ff');
+      drawSpeakerCone(ctx, 180, 162, 42, '#ff0077');
+
+      // Center dome
+      ctx.fillStyle = '#ffe600';
+      ctx.beginPath();
+      ctx.arc(128, 140, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      return canvas;
+    }
+
+    function drawSpeakerCone(ctx, cx, cy, r, color) {
+      ctx.fillStyle = '#101424';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      ctx.fillStyle = '#1b2238';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 0.65, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    let speakerRealTexture = null;
+
+    function loadSpeakerTexture(onLoad) {
+      if (speakerRealTexture) {
+        if (onLoad) onLoad(speakerRealTexture);
+        return;
+      }
+      if (!speakerTexture) {
+        const fallbackCanvas = createFallbackSpeakerCanvas();
+        speakerTexture = new THREE.CanvasTexture(fallbackCanvas);
+        speakerTexture.magFilter = THREE.LinearFilter;
+        speakerTexture.minFilter = THREE.LinearFilter;
+      }
+
+      new THREE.TextureLoader().load(
+        resolveUrl(SPEAKER_IMG_URL),
+        tex => {
+          tex.magFilter = THREE.LinearFilter;
+          tex.minFilter = THREE.LinearFilter;
+          tex.colorSpace = THREE.SRGBColorSpace;
+          speakerTexture = tex;
+          speakerRealTexture = tex;
+
+          if (playerSpeakerMesh) {
+            playerSpeakerMesh.material.map = tex;
+            playerSpeakerMesh.material.needsUpdate = true;
+          }
+          if (fpSpeakerMesh) {
+            fpSpeakerMesh.material.map = tex;
+            fpSpeakerMesh.material.needsUpdate = true;
+          }
+          Object.values(otherPlayers).forEach(op => {
+            if (op.speakerMesh) {
+              op.speakerMesh.material.map = tex;
+              op.speakerMesh.material.needsUpdate = true;
+            }
+          });
+
+          if (onLoad) onLoad(tex);
+        },
+        undefined,
+        () => {
+          if (onLoad) onLoad(speakerTexture);
+        }
+      );
+    }
+
+    function toggleSpeaker() {
+      isSpeakerEquipped = !isSpeakerEquipped;
+      playSound('select');
+
+      if (isSpeakerEquipped) {
+        if (!isSpeakerAudioPlaying) {
+          playSpeakerAudio(speakerMusicUrl);
+        }
+        if (isEmotePlaying && emoteVideo) {
+          emoteVideo.volume = 0.05;
+        }
+        spawnFloatingAura('📻 BOCINA EN MANO');
+      } else {
+        if (isSpeakerAudioPlaying) {
+          pauseSpeakerAudio();
+        }
+        if (isEmotePlaying && emoteVideo) {
+          emoteVideo.volume = 0.7;
+        }
+        spawnFloatingAura('📻 BOCINA GUARDADA');
+      }
+      updateSpeakerVisuals();
+      maybePublish(true);
+    }
+
+    function updateSpeakerVisuals() {
+      if (playerSpeakerMesh) {
+        playerSpeakerMesh.visible = isSpeakerEquipped && isThirdPerson;
+      }
+      if (fpSpeakerMesh) {
+        fpSpeakerMesh.visible = isSpeakerEquipped && !isThirdPerson;
+      }
+
+      if (bocinaToggleBtn) {
+        if (isSpeakerEquipped) {
+          bocinaToggleBtn.textContent = '📻 BOCINA: ACTIVA (G)';
+          bocinaToggleBtn.style.borderColor = '#00ff66';
+          bocinaToggleBtn.style.color = '#00ff66';
+          bocinaToggleBtn.style.background = 'rgba(0, 255, 102, 0.25)';
+          bocinaToggleBtn.style.boxShadow = '0 0 10px rgba(0, 255, 102, 0.5)';
+        } else {
+          bocinaToggleBtn.textContent = '📻 BOCINA (G)';
+          bocinaToggleBtn.style.borderColor = '#ff0077';
+          bocinaToggleBtn.style.color = '#ff77b0';
+          bocinaToggleBtn.style.background = 'rgba(12, 18, 38, 0.85)';
+          bocinaToggleBtn.style.boxShadow = 'none';
+        }
+      }
+    }
+
+    hudAuraVal.textContent = auraCount.toLocaleString();
+
+    function renderAvatar(char, el) {
+      el.innerHTML = '';
+      const icon = char.icon || char.image;
+      if (icon && (icon.includes('.') || icon.startsWith('http') || icon.startsWith('data:'))) {
+        const img = document.createElement('img');
+        img.src = resolveUrl(icon);
+        img.alt = char.name;
+        img.onerror = () => { img.src = IMG_PLAYER; };
+        el.appendChild(img);
+      } else {
+        const span = document.createElement('span');
+        span.className = 'avatar-emoji';
+        span.textContent = icon || '👤';
+        el.appendChild(span);
+      }
+    }
+
+    function renderFull(char, el) {
+      el.innerHTML = '';
+      const sprite = char.image || char.icon;
+      if (sprite && (sprite.includes('.') || sprite.startsWith('http') || sprite.startsWith('data:'))) {
+        const img = document.createElement('img');
+        img.src = resolveUrl(sprite);
+        img.alt = char.name;
+        img.onerror = () => { img.src = IMG_PLAYER; };
+        el.appendChild(img);
+      } else {
+        const span = document.createElement('span');
+        span.className = 'avatar-emoji';
+        span.textContent = char.icon || '👤';
+        el.appendChild(span);
+      }
+    }
+
+    function selectCharacter(char, cardElement) {
+      document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
+      if (cardElement) cardElement.classList.add('selected');
+      selectedChar = char;
+
+      renderAvatar(char, previewPortrait);
+      previewName.textContent = char.name;
+      previewAura.textContent = `AURA: ${char.aura || '+9999'}`;
+      renderFull(char, previewFull);
+
+      localStorage.setItem('zw_skinUrl', char.image || IMG_PLAYER);
+      localStorage.setItem('zw_skinName', char.name);
+    }
+
+    function populateGrid(skinList) {
+      grid.innerHTML = '';
+      charsCountEl.textContent = `${skinList.length} Fighters`;
+
+      const savedName = localStorage.getItem('zw_skinName') || 'Default';
+      let found = false;
+
+      skinList.forEach(char => {
+        const card = document.createElement('div');
+        card.classList.add('character-card');
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.classList.add('character-avatar');
+        renderAvatar(char, avatarDiv);
+        card.appendChild(avatarDiv);
+
+        const nameDiv = document.createElement('div');
+        nameDiv.classList.add('character-card-name');
+        nameDiv.textContent = char.name;
+        card.appendChild(nameDiv);
+
+        if (char.name === savedName) {
+          card.classList.add('selected');
+          selectCharacter(char, card);
+          found = true;
+        }
+
+        card.addEventListener('mouseenter', () => {
+          playSound('hover');
+          selectCharacter(char, card);
+        });
+
+        card.addEventListener('click', () => {
+          playSound('select');
+          if (char.audio) playSkinAudio(char.audio);
+          selectCharacter(char, card);
+        });
+
+        grid.appendChild(card);
+      });
+
+      if (!found && skinList.length > 0) {
+        selectCharacter(skinList[0], grid.children[0]);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       THREE.JS 3D ENGINE STATE & GLOBALS
+    ═══════════════════════════════════════════════ */
+    let scene = null, camera = null, renderer = null;
+    let playerGroup = null, playerBillboardMesh = null, playerTexture = null;
+    let isThirdPerson = true;
+    let auraNodes = [];
+    let is3dRunning = false;
+    let animFrameId = null;
+
+    const keys = { w: false, a: false, s: false, d: false, space: false, shift: false };
+    const playerPos = new THREE.Vector3(0, 0, 10);
+    const playerVel = new THREE.Vector3();
+    let isGrounded = true;
+    let cameraYaw = 0;
+    let cameraPitch = 0.2;
+
+    function loadSafeTexture(url, onLoad) {
+      const resolved = resolveUrl(url || IMG_PLAYER);
+      new THREE.TextureLoader().load(
+        resolved,
+        tex => {
+          tex.magFilter = THREE.LinearFilter;
+          tex.minFilter = THREE.LinearFilter;
+          onLoad(tex);
+        },
+        undefined,
+        () => {
+          new THREE.TextureLoader().load(IMG_PLAYER, fbTex => {
+            fbTex.magFilter = THREE.LinearFilter;
+            fbTex.minFilter = THREE.LinearFilter;
+            onLoad(fbTex);
+          });
+        }
+      );
+    }
+
+    /* ══ MULTIJUGADOR REAL-TIME CON FIREBASE (Sincronizado) ══ */
+    // Generar ID único por pestaña/sesión para permitir multijugador entre pestañas
+    const myId = 'p_' + Math.random().toString(36).slice(2, 9) + '_' + Date.now().toString(36).slice(-4);
+    let fbDb = null;
+    const otherPlayers = {};
+    let lastPubTime = 0;
+    let ffaPlayersData = {};
+    let farmearPlayersData = {};
+    let ffaUnsub = null;
+    let farmearUnsub = null;
+
+    function maybePublish(force = false) {
+      const now = Date.now();
+      if (!force && now - lastPubTime < 50) return;
+      lastPubTime = now;
+      publishPos();
+    }
+
+    function publishPos() {
+      if (!fbDb || !is3dRunning) return;
+      const dataPayload = {
+        name: selectedChar.name || 'Fighter',
+        skin: selectedChar.image || IMG_PLAYER,
+        x: +playerPos.x.toFixed(3),
+        y: +(playerPos.y + 1.5).toFixed(3),
+        z: +playerPos.z.toFixed(3),
+        yaw: +cameraYaw.toFixed(4),
+        hp: 100,
+        dead: false,
+        aura: auraCount,
+        holdingSpeaker: !!isSpeakerEquipped,
+        hasAuraRing: !!(playerAuraRingMesh && playerAuraRingMesh.visible),
+        lastAuraGain: lastLocalAuraGain,
+        speakerAudioUrl: (isSpeakerEquipped && isSpeakerAudioPlaying) ? speakerMusicUrl : null,
+        speakerAudioPlaying: !!(isSpeakerEquipped && isSpeakerAudioPlaying),
+        activeEmote: isEmotePlaying ? {
+          name: currentEmoteNameEl.textContent || 'BAILANDO',
+          video: emoteVideo.src || null
+        } : null,
+        emoteVideo: isEmotePlaying ? (emoteVideo.src || null) : null,
+        t: Date.now()
+      };
+
+      set(ref(fbDb, `fps/players_ffa/${myId}`), dataPayload).catch(() => {});
+      set(ref(fbDb, `fps/players_farmear/${myId}`), dataPayload).catch(() => {});
+    }
+
+    function makeNameplateTex(name, aura) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = 'rgba(5, 10, 25, 0.85)';
+      ctx.roundRect(4, 4, 248, 56, 10);
+      ctx.fill();
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 18px "Press Start 2P", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(name.slice(0, 10), 128, 22);
+
+      ctx.fillStyle = '#00ff66';
+      ctx.font = '12px "Press Start 2P", sans-serif';
+      const auraStr = typeof aura === 'number' ? `${aura.toLocaleString()} ⚡` : (aura || '⚡ AURA');
+      ctx.fillText(auraStr, 128, 44);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.minFilter = THREE.LinearFilter;
+      return tex;
+    }
+
+    function createAuraRingWithParticles(primaryColor = 0x00ff66) {
+      const group = new THREE.Group();
+
+      // 1 Solo círculo/anillo grande (idéntico al estilo de los diamantes pero grande)
+      const ringGeo = new THREE.RingGeometry(4.2, 4.7, 48);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: primaryColor,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.95
+      });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = -Math.PI / 2;
+      ringMesh.position.y = 0.04;
+      group.add(ringMesh);
+
+      // Partículas de aura que se elevan desde el círculo hacia arriba
+      const particleCount = 40;
+      const posArray = new Float32Array(particleCount * 3);
+      const particleData = [];
+
+      for (let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const r = 4.2 + Math.random() * 0.5;
+        const y = Math.random() * 3.5;
+        posArray[i * 3] = Math.cos(angle) * r;
+        posArray[i * 3 + 1] = y;
+        posArray[i * 3 + 2] = Math.sin(angle) * r;
+
+        particleData.push({
+          angle: angle,
+          r: r,
+          y: y,
+          speedY: 1.5 + Math.random() * 1.8,
+          rotSpeed: (Math.random() - 0.5) * 0.6
+        });
+      }
+
+      const pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+      // Textura circular suave y brillante para las partículas
+      const pCanvas = document.createElement('canvas');
+      pCanvas.width = 32;
+      pCanvas.height = 32;
+      const pCtx = pCanvas.getContext('2d');
+      const grad = pCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+      grad.addColorStop(0, '#ffffff');
+      grad.addColorStop(0.35, '#00ff66');
+      grad.addColorStop(1, 'rgba(0,255,102,0)');
+      pCtx.fillStyle = grad;
+      pCtx.fillRect(0, 0, 32, 32);
+      const pTex = new THREE.CanvasTexture(pCanvas);
+
+      const pMat = new THREE.PointsMaterial({
+        size: 0.38,
+        map: pTex,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      const particlesMesh = new THREE.Points(pGeo, pMat);
+      group.add(particlesMesh);
+
+      group.userData = {
+        ring: ringMesh,
+        particles: particlesMesh,
+        particleData: particleData,
+        posAttr: pGeo.getAttribute('position')
+      };
+
+      return group;
+    }
+
+    function spawnOtherPlayer(id, pData) {
+      if (!scene) return;
+      const group = new THREE.Group();
+      const posY = (typeof pData.y === 'number' && pData.y > 0.8) ? (pData.y - 1.5) : (pData.y || 0);
+      group.position.set(pData.x || 0, posY, pData.z || 0);
+
+      const QUAD_W = 1.8, QUAD_H = 2.4;
+      const geo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
+      const mat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        alphaTest: 0.05
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.y = QUAD_H / 2;
+      group.add(mesh);
+
+      // Bocina en mano de otros jugadores
+      const spkGeo = new THREE.PlaneGeometry(0.85, 0.85);
+      const spkMat = new THREE.MeshBasicMaterial({
+        map: speakerRealTexture || speakerTexture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        alphaTest: 0.05
+      });
+      const otherSpeakerMesh = new THREE.Mesh(spkGeo, spkMat);
+      otherSpeakerMesh.position.set(0.62, -0.05, 0.08);
+      otherSpeakerMesh.visible = !!pData.holdingSpeaker;
+      mesh.add(otherSpeakerMesh);
+
+      const skinUrl = pData.skin || IMG_PLAYER;
+      loadSafeTexture(skinUrl, tex => {
+        if (otherPlayers[id] && !otherPlayers[id].currentEmoteVideo) {
+          mat.map = tex;
+          mat.needsUpdate = true;
+        }
+      });
+
+      const nameplateGeo = new THREE.PlaneGeometry(2.0, 0.5);
+      const nameplateMat = new THREE.MeshBasicMaterial({
+        map: makeNameplateTex(pData.name || 'Fighter', pData.aura),
+        transparent: true,
+        side: THREE.DoubleSide
+      });
+      const nameplateMesh = new THREE.Mesh(nameplateGeo, nameplateMat);
+      nameplateMesh.position.y = QUAD_H + 0.35;
+      group.add(nameplateMesh);
+
+      const shadowGeo = new THREE.CircleGeometry(0.8, 12);
+      const shadowMat = new THREE.MeshBasicMaterial({
+        color: 0x1a3a14,
+        transparent: true,
+        opacity: 0.5
+      });
+      const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = 0.03;
+      group.add(shadow);
+
+      // Círculo único de aura grande con partículas bajo el otro jugador (solo al bailar)
+      const opAuraRingMesh = createAuraRingWithParticles(0x00ff66);
+      opAuraRingMesh.visible = !!(pData.activeEmote || pData.emoteVideo || pData.hasAuraRing);
+      group.add(opAuraRingMesh);
+
+      scene.add(group);
+
+      const otherAudio = new Audio();
+      otherAudio.loop = true;
+      otherAudio.crossOrigin = "anonymous";
+
+      otherPlayers[id] = {
+        id,
+        group,
+        mesh,
+        speakerMesh: otherSpeakerMesh,
+        auraRingMesh: opAuraRingMesh,
+        nameplateMesh,
+        targetPos: new THREE.Vector3(pData.x || 0, posY, pData.z || 0),
+        targetYaw: pData.yaw || 0,
+        data: pData,
+        currentEmoteVideo: null,
+        videoEl: null,
+        videoTex: null,
+        audioEl: otherAudio,
+        currentSpeakerUrl: null
+      };
+
+      updateOtherPlayerEmote(id, pData);
+      updateOtherPlayerSpeakerAudio(id, pData);
+    }
+
+    function updateOtherPlayerData(id, pData) {
+      const op = otherPlayers[id];
+      if (!op) return;
+
+      const posY = (typeof pData.y === 'number' && pData.y > 0.8) ? (pData.y - 1.5) : (pData.y || 0);
+      op.targetPos.set(pData.x || 0, posY, pData.z || 0);
+      op.targetYaw = pData.yaw || 0;
+
+      if (op.speakerMesh) {
+        op.speakerMesh.visible = !!pData.holdingSpeaker;
+      }
+
+      if (op.auraRingMesh) {
+        op.auraRingMesh.visible = !!(pData.activeEmote || pData.emoteVideo || pData.hasAuraRing);
+      }
+
+      if (op.data.aura !== pData.aura || op.data.name !== pData.name) {
+        op.nameplateMesh.material.map?.dispose();
+        op.nameplateMesh.material.map = makeNameplateTex(pData.name || 'Fighter', pData.aura);
+        op.nameplateMesh.material.needsUpdate = true;
+      }
+
+      if (op.data.skin !== pData.skin) {
+        loadSafeTexture(pData.skin || IMG_PLAYER, tex => {
+          if (otherPlayers[id] && !otherPlayers[id].currentEmoteVideo) {
+            op.mesh.material.map = tex;
+            op.mesh.material.needsUpdate = true;
+          }
+        });
+      }
+
+      if (pData.lastAuraGain && pData.lastAuraGain.time && pData.lastAuraGain.time > (op.lastSeenGainTime || 0)) {
+        op.lastSeenGainTime = pData.lastAuraGain.time;
+        const color = pData.lastAuraGain.text.includes('⚔️') ? '#ff0055' : (pData.lastAuraGain.text.includes('NODO') ? '#00ff66' : '#ffe600');
+        spawnFloatingAura3D(op.group.position.x, op.group.position.y, op.group.position.z, pData.lastAuraGain.text, color);
+      }
+
+      updateOtherPlayerEmote(id, pData);
+      updateOtherPlayerSpeakerAudio(id, pData);
+      op.data = pData;
+    }
+
+    function updateOtherPlayerSpeakerAudio(id, pData) {
+      const op = otherPlayers[id];
+      if (!op || !op.audioEl) return;
+
+      const isPlaying = pData.speakerAudioPlaying && pData.holdingSpeaker && pData.speakerAudioUrl;
+      if (isPlaying) {
+        const resolvedUrl = resolveUrl(pData.speakerAudioUrl);
+        if (op.currentSpeakerUrl !== resolvedUrl) {
+          op.currentSpeakerUrl = resolvedUrl;
+          op.audioEl.src = resolvedUrl;
+          op.audioEl.play().catch(() => {});
+        } else if (op.audioEl.paused) {
+          op.audioEl.play().catch(() => {});
+        }
+      } else {
+        if (op.currentSpeakerUrl) {
+          op.currentSpeakerUrl = null;
+          op.audioEl.pause();
+          op.audioEl.src = '';
+        }
+      }
+    }
+
+    function updateOtherPlayerEmote(id, pData) {
+      const op = otherPlayers[id];
+      if (!op) return;
+
+      const emoteVid = pData.activeEmote?.video || pData.emoteVideo || null;
+
+      if (emoteVid && emoteVid !== op.currentEmoteVideo) {
+        op.currentEmoteVideo = emoteVid;
+        if (!op.videoEl) {
+          op.videoEl = document.createElement('video');
+          op.videoEl.playsInline = true;
+          op.videoEl.loop = true;
+          op.videoEl.crossOrigin = 'anonymous';
+          op.videoEl.muted = false;
+          op.videoTex = new THREE.VideoTexture(op.videoEl);
+          op.videoTex.colorSpace = THREE.SRGBColorSpace;
+        } else {
+          op.videoEl.muted = false;
+        }
+
+        // Calcular volumen espacial por distancia
+        const dist = playerPos.distanceTo(op.group.position);
+        const maxDist = 45.0;
+        op.videoEl.volume = Math.max(0, Math.min(0.8, (1 - dist / maxDist) * 0.8));
+
+        op.videoEl.src = resolveUrl(emoteVid);
+        const playPromise = op.videoEl.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            op.videoEl.muted = true;
+            op.videoEl.play().catch(() => {});
+          });
+        }
+        op.mesh.material.map = op.videoTex;
+        op.mesh.material.needsUpdate = true;
+      } else if (!emoteVid && op.currentEmoteVideo) {
+        op.currentEmoteVideo = null;
+        if (op.videoEl) {
+          op.videoEl.pause();
+          op.videoEl.src = '';
+        }
+        loadSafeTexture(pData.skin || IMG_PLAYER, tex => {
+          if (otherPlayers[id]) {
+            op.mesh.material.map = tex;
+            op.mesh.material.needsUpdate = true;
+          }
+        });
+      }
+    }
+
+    function removeOtherPlayer(id) {
+      const op = otherPlayers[id];
+      if (!op) return;
+
+      scene.remove(op.group);
+      if (op.videoEl) {
+        op.videoEl.pause();
+        op.videoEl.src = '';
+      }
+      if (op.audioEl) {
+        op.audioEl.pause();
+        op.audioEl.src = '';
+      }
+      if (op.videoTex) op.videoTex.dispose();
+      op.mesh.material.dispose();
+      op.nameplateMesh.material.dispose();
+      delete otherPlayers[id];
+    }
+
+    function cleanupAllOtherPlayers() {
+      Object.keys(otherPlayers).forEach(id => removeOtherPlayer(id));
+    }
+
+    /* ── FIREBASE INIT ── */
+    try {
+      const fbApp = initializeApp(FB_CONFIG);
+      fbDb = getDatabase(fbApp);
+
+      firebaseStatusText.textContent = "Conectando a Firebase...";
+
+      const skinsRef = ref(fbDb, 'fps/skins');
+      onValue(skinsRef, (snap) => {
+        if (snap.exists()) {
+          const val = snap.val();
+          let rawSkins = Array.isArray(val) ? val.filter(Boolean) : Object.values(val || {});
+
+          const formatted = [
+            DEFAULT_SKIN,
+            ...rawSkins.map((s, idx) => ({
+              name: s.name || `Fighter ${idx + 1}`,
+              image: s.image || IMG_PLAYER,
+              icon: s.icon || s.image || '👤',
+              audio: s.audio || '',
+              aura: `+${(idx + 2) * 5000}`,
+              unlocked: true
+            }))
+          ];
+
+          const unique = [];
+          const map = new Map();
+          for (const item of formatted) {
+            if (!map.has(item.name)) {
+              map.set(item.name, true);
+              unique.push(item);
+            }
+          }
+
+          characters = unique;
+          populateGrid(characters);
+          firebaseStatusText.textContent = `✓ Firebase Online (${characters.length} Fighters)`;
+        } else {
+          characters = [DEFAULT_SKIN];
+          populateGrid(characters);
+          firebaseStatusText.textContent = "✓ Firebase conectado";
+        }
+      }, () => {
+        firebaseStatusText.textContent = "Modo Offline (Base)";
+        populateGrid([DEFAULT_SKIN]);
+      });
+
+      const emotesRef = ref(fbDb, 'fps/emotes');
+      onValue(emotesRef, (snap) => {
+        if (snap.exists()) {
+          const val = snap.val();
+          rawEmotes = Array.isArray(val) ? val.filter(Boolean) : Object.values(val || {});
+          populateEmotesList(rawEmotes);
+        }
+      });
+
+    } catch (e) {
+      firebaseStatusText.textContent = "Modo Offline";
+      populateGrid([DEFAULT_SKIN]);
+    }
+
+    /* ══ EMOTE SYSTEM LOGIC ══ */
+    function getEmoteVideoForCharacter(emote, charName) {
+      if (emote.characterVideos && emote.characterVideos[charName]) {
+        return emote.characterVideos[charName];
+      }
+      if (charName === 'Default' && emote.video) return emote.video;
+      if (emote.video) return emote.video;
+      return '';
+    }
+
+    function populateEmotesList(emotesList) {
+      emotesGridContainer.innerHTML = '';
+      if (!emotesList || emotesList.length === 0) {
+        emotesGridContainer.innerHTML = '<div style="grid-column:1/-1;font-size:8px;color:#888;">No hay emotes disponibles</div>';
+        return;
+      }
+
+      emotesList.forEach(emote => {
+        const card = document.createElement('div');
+        card.className = 'emote-card';
+
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'emote-icon';
+        if (emote.icon && (emote.icon.includes('.') || emote.icon.startsWith('http'))) {
+          iconDiv.innerHTML = `<img src="${resolveUrl(emote.icon)}" alt="${emote.name}">`;
+        } else {
+          iconDiv.textContent = emote.icon || '🕺';
+        }
+        card.appendChild(iconDiv);
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'emote-name';
+        nameDiv.textContent = emote.name || 'Emote';
+        card.appendChild(nameDiv);
+
+        card.addEventListener('click', () => {
+          playEmoteIn3D(emote);
+          emoteWheelModal.classList.remove('active');
+        });
+
+        emotesGridContainer.appendChild(card);
+      });
+    }
+
+    let isEmotePlaying = false;
+    let emoteVideoTexture = null;
+
+    function playEmoteIn3D(emote) {
+      if (!emote) return;
+      const vidUrl = getEmoteVideoForCharacter(emote, selectedChar.name);
+      if (!vidUrl) return;
+
+      stopEmoteIn3D();
+      isEmotePlaying = true;
+
+      const resolved = resolveUrl(vidUrl);
+      emoteVideo.src = resolved;
+      emoteVideo.muted = false;
+      // Si la bocina está sonando, bajar suavemente el volumen del emote de fondo (sin pausar ni mutear)
+      emoteVideo.volume = (isSpeakerEquipped && isSpeakerAudioPlaying) ? 0.15 : 0.7;
+
+      if (!emoteVideoTexture) {
+        emoteVideoTexture = new THREE.VideoTexture(emoteVideo);
+        emoteVideoTexture.colorSpace = THREE.SRGBColorSpace;
+      }
+
+      emoteVideo.oncanplay = () => {
+        emoteVideo.play().catch(() => {});
+      };
+
+      emoteVideo.onended = () => {
+        stopEmoteIn3D();
+      };
+
+      if (playerBillboardMesh) {
+        playerBillboardMesh.material.map = emoteVideoTexture;
+        playerBillboardMesh.material.needsUpdate = true;
+      }
+
+      // Comprobar si estoy dentro del círculo de otro jugador (< 4.8m) para unirme a su pelea de aura
+      let insideOtherCircle = false;
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        if (op.data?.hasAuraRing || (op.auraRingMesh && op.auraRingMesh.visible)) {
+          const dist = playerPos.distanceTo(op.group.position);
+          if (dist < 4.8) {
+            insideOtherCircle = true;
+            break;
+          }
+        }
+      }
+
+      if (playerAuraRingMesh) {
+        if (insideOtherCircle) {
+          playerAuraRingMesh.visible = false;
+        } else {
+          playerAuraRingMesh.visible = true;
+          playerAuraRingMesh.scale.set(1, 1, 1);
+        }
+      }
+
+      currentEmoteNameEl.textContent = emote.name || 'BAILANDO';
+      emoteVideoOverlay.classList.add('active');
+      maybePublish(true);
+    }
+
+    function stopEmoteIn3D() {
+      if (!isEmotePlaying) return;
+      isEmotePlaying = false;
+      emoteVideo.pause();
+      emoteVideo.src = '';
+      emoteVideo.onended = null;
+      emoteVideoOverlay.classList.remove('active');
+
+      if (playerAuraRingMesh) {
+        playerAuraRingMesh.visible = false;
+      }
+
+      if (playerBillboardMesh && playerTexture) {
+        playerBillboardMesh.material.map = playerTexture;
+        playerBillboardMesh.material.needsUpdate = true;
+      }
+      maybePublish(true);
+    }
+
+    stopEmoteBtn.addEventListener('click', stopEmoteIn3D);
+
+    /* ══ CONTROL DEL EFECTO CRT (ACTIVADO POR DEFECTO) ══ */
+    let crtEnabled = localStorage.getItem('farmear_aura_crt') !== 'false';
+
+    function updateCrtDisplay() {
+      const crtOverlay = document.getElementById('crtOverlay');
+      const menuBtn = document.getElementById('crtToggleMenuBtn');
+      const selectBtn = document.getElementById('crtToggleSelectBtn');
+      const hudBtn = document.getElementById('crtToggleHudBtn');
+
+      if (crtEnabled) {
+        crtOverlay.classList.remove('disabled');
+        if (menuBtn) { menuBtn.textContent = '📺 CRT: ON'; menuBtn.style.color = '#00ff66'; }
+        if (selectBtn) { selectBtn.textContent = '📺 CRT: ON'; selectBtn.style.color = '#00ff66'; }
+        if (hudBtn) { hudBtn.textContent = '📺 CRT: ON'; hudBtn.style.color = '#00ff66'; }
+      } else {
+        crtOverlay.classList.add('disabled');
+        if (menuBtn) { menuBtn.textContent = '📺 CRT: OFF'; menuBtn.style.color = '#ff6666'; }
+        if (selectBtn) { selectBtn.textContent = '📺 CRT: OFF'; selectBtn.style.color = '#ff6666'; }
+        if (hudBtn) { hudBtn.textContent = '📺 CRT: OFF'; hudBtn.style.color = '#ff6666'; }
+      }
+      localStorage.setItem('farmear_aura_crt', crtEnabled ? 'true' : 'false');
+    }
+
+    function toggleCrt() {
+      playSound('select');
+      crtEnabled = !crtEnabled;
+      updateCrtDisplay();
+    }
+
+    const crtToggleMenuBtn = document.getElementById('crtToggleMenuBtn');
+    const crtToggleSelectBtn = document.getElementById('crtToggleSelectBtn');
+    const crtToggleHudBtn = document.getElementById('crtToggleHudBtn');
+
+    if (crtToggleMenuBtn) crtToggleMenuBtn.addEventListener('click', toggleCrt);
+    if (crtToggleSelectBtn) crtToggleSelectBtn.addEventListener('click', toggleCrt);
+    if (crtToggleHudBtn) crtToggleHudBtn.addEventListener('click', toggleCrt);
+
+    updateCrtDisplay();
+
+    /* ══ MENU TRANSITIONS ══ */
+    startBtn.addEventListener('click', () => {
+      playSound('select');
+      startScreen.classList.add('hidden');
+      selectScreen.classList.remove('hidden');
+    });
+
+    backToStartBtn.addEventListener('click', () => {
+      playSound('hover');
+      selectScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (selectedChar) {
+        playSound('select');
+        selectScreen.classList.add('hidden');
+        gameContainer.style.display = 'block';
+
+        hudCharName.textContent = selectedChar.name;
+        renderAvatar(selectedChar, hudCharAvatar);
+
+        start3DGame();
+      }
+    });
+
+    exit3dBtn.addEventListener('click', () => {
+      playSound('hover');
+      stopEmoteIn3D();
+      stop3DGame();
+      document.exitPointerLock();
+      gameContainer.style.display = 'none';
+      selectScreen.classList.remove('hidden');
+    });
+
+    openEmoteBtn.addEventListener('click', () => {
+      playSound('select');
+      document.exitPointerLock();
+      emoteWheelModal.classList.add('active');
+    });
+
+    closeEmotesModal.addEventListener('click', () => {
+      emoteWheelModal.classList.remove('active');
+    });
+
+    function syncAllPlayers() {
+      if (!is3dRunning) return;
+      const combined = { ...ffaPlayersData, ...farmearPlayersData };
+      const now = Date.now();
+
+      Object.entries(combined).forEach(([id, pData]) => {
+        if (id === myId || !pData || pData.dead) {
+          if (otherPlayers[id]) removeOtherPlayer(id);
+          return;
+        }
+        // Ignorar fantasmas desconectados hace más de 45 segundos si tienen timestamp
+        if (pData.t && (now - pData.t > 45000)) {
+          if (otherPlayers[id]) removeOtherPlayer(id);
+          return;
+        }
+        if (!otherPlayers[id]) {
+          spawnOtherPlayer(id, pData);
+        } else {
+          updateOtherPlayerData(id, pData);
+        }
+      });
+
+      Object.keys(otherPlayers).forEach(id => {
+        if (!combined[id]) {
+          removeOtherPlayer(id);
+        }
+      });
+    }
+
+    function start3DGame() {
+      if (!scene) {
+        init3DScene();
+      }
+      loadSpeakerTexture();
+      loadPlayerSkinTexture(selectedChar.image || IMG_PLAYER);
+      is3dRunning = true;
+
+      // Conexión Multijugador en Vivo (Sincronizado con index.html y farmearaura)
+      if (fbDb) {
+        onDisconnect(ref(fbDb, `fps/players_ffa/${myId}`)).remove();
+        onDisconnect(ref(fbDb, `fps/players_farmear/${myId}`)).remove();
+        maybePublish(true);
+
+        if (ffaUnsub) ffaUnsub();
+        if (farmearUnsub) farmearUnsub();
+
+        ffaUnsub = onValue(ref(fbDb, 'fps/players_ffa'), snap => {
+          if (!is3dRunning) return;
+          ffaPlayersData = snap.val() || {};
+          syncAllPlayers();
+        });
+
+        farmearUnsub = onValue(ref(fbDb, 'fps/players_farmear'), snap => {
+          if (!is3dRunning) return;
+          farmearPlayersData = snap.val() || {};
+          syncAllPlayers();
+        });
+      }
+
+      lastFrameTime = performance.now();
+      loop3D(lastFrameTime);
+    }
+
+    function stop3DGame() {
+      is3dRunning = false;
+      if (animFrameId) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+      }
+      if (ffaUnsub) { ffaUnsub(); ffaUnsub = null; }
+      if (farmearUnsub) { farmearUnsub(); farmearUnsub = null; }
+      if (fbDb) {
+        remove(ref(fbDb, `fps/players_ffa/${myId}`)).catch(() => {});
+        remove(ref(fbDb, `fps/players_farmear/${myId}`)).catch(() => {});
+      }
+      ffaPlayersData = {};
+      farmearPlayersData = {};
+      cleanupAllOtherPlayers();
+    }
+
+    function init3DScene() {
+      const canvas = document.getElementById('game-canvas');
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x5ca9e6);
+      scene.fog = new THREE.Fog(0x5ca9e6, 80, 220);
+
+      camera = new THREE.PerspectiveCamera(70, width / height, 0.1, 500);
+
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: false,
+        powerPreference: 'high-performance'
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
+      scene.add(ambientLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfff5e6, 0.9);
+      sunLight.position.set(50, 80, 30);
+      scene.add(sunLight);
+
+      buildFlatMap();
+      buildPlayerMesh();
+      setupControls(canvas);
+    }
+
+    /* ── CONSTRUCCIÓN DEL MAPA PLANO ── */
+    function buildFlatMap() {
+      const floorSize = 400;
+      const floorGeo = new THREE.PlaneGeometry(floorSize, floorSize, 1, 1);
+      const floorMat = new THREE.MeshLambertMaterial({
+        color: 0x4a9338
+      });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = 0;
+      scene.add(floor);
+
+      const gridHelper = new THREE.GridHelper(floorSize, 40, 0x3d7e2e, 0x3d7e2e);
+      gridHelper.position.y = 0.02;
+      scene.add(gridHelper);
+
+      const crystalGeo = new THREE.OctahedronGeometry(1.0, 0);
+
+      const nodePositions = [
+        { x: 0, z: 0, val: 500, c: 0x00ff66 },
+        { x: 20, z: 20, val: 200, c: 0xbd00ff },
+        { x: -20, z: 20, val: 200, c: 0x00f0ff },
+        { x: 20, z: -20, val: 200, c: 0xffe600 },
+        { x: -20, z: -20, val: 200, c: 0xff0055 },
+        { x: 45, z: 0, val: 300, c: 0x00ff66 },
+        { x: -45, z: 0, val: 300, c: 0x00ff66 },
+        { x: 0, z: 45, val: 300, c: 0xbd00ff },
+        { x: 0, z: -45, val: 300, c: 0xbd00ff },
+        { x: 35, z: -35, val: 250, c: 0x00f0ff },
+        { x: -35, z: 35, val: 250, c: 0x00f0ff },
+        { x: 60, z: 60, val: 400, c: 0xffe600 },
+        { x: -60, z: -60, val: 400, c: 0xffe600 },
+      ];
+
+      nodePositions.forEach((pos) => {
+        const mat = new THREE.MeshBasicMaterial({ color: pos.c, wireframe: false });
+        const crystal = new THREE.Mesh(crystalGeo, mat);
+        crystal.position.set(pos.x, 1.8, pos.z);
+        scene.add(crystal);
+
+        const ringGeo = new THREE.RingGeometry(1.2, 1.5, 12);
+        const ringMat = new THREE.MeshBasicMaterial({ color: pos.c, side: THREE.DoubleSide });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(pos.x, 0.05, pos.z);
+        scene.add(ring);
+
+        auraNodes.push({ mesh: crystal, pos, collectedTime: 0 });
+      });
+    }
+
+    /* ── PLAYER MESH BUILDER ── */
+    function buildPlayerMesh() {
+      playerGroup = new THREE.Group();
+      playerPos.set(0, 0, 10);
+      playerGroup.position.copy(playerPos);
+
+      const QUAD_W = 1.8, QUAD_H = 2.4;
+      const geo = new THREE.PlaneGeometry(QUAD_W, QUAD_H);
+      const mat = new THREE.MeshBasicMaterial({
+        transparent: true,
+        side: THREE.DoubleSide,
+        alphaTest: 0.05
+      });
+      playerBillboardMesh = new THREE.Mesh(geo, mat);
+      playerBillboardMesh.position.y = QUAD_H / 2;
+      playerGroup.add(playerBillboardMesh);
+
+      // Bocina en la mano (3ra persona) adjunta al billboard del jugador
+      const spkGeo = new THREE.PlaneGeometry(0.85, 0.85);
+      const spkMat = new THREE.MeshBasicMaterial({
+        map: speakerRealTexture || speakerTexture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        alphaTest: 0.05
+      });
+      playerSpeakerMesh = new THREE.Mesh(spkGeo, spkMat);
+      playerSpeakerMesh.position.set(0.62, -0.05, 0.08); // Posicionada en la mano derecha a la altura correcta
+      playerSpeakerMesh.visible = isSpeakerEquipped;
+      playerBillboardMesh.add(playerSpeakerMesh);
+
+      // Bocina en primera persona adjunta a la cámara
+      const fpGeo = new THREE.PlaneGeometry(0.75, 0.75);
+      const fpMat = new THREE.MeshBasicMaterial({
+        map: speakerTexture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        alphaTest: 0.05,
+        depthTest: false
+      });
+      fpSpeakerMesh = new THREE.Mesh(fpGeo, fpMat);
+      fpSpeakerMesh.position.set(0.42, -0.32, -0.75);
+      fpSpeakerMesh.rotation.set(0, -0.15, -0.05);
+      fpSpeakerMesh.renderOrder = 999;
+      fpSpeakerMesh.visible = isSpeakerEquipped && !isThirdPerson;
+      camera.add(fpSpeakerMesh);
+      scene.add(camera);
+
+      const shadowGeo = new THREE.CircleGeometry(0.8, 12);
+      const shadowMat = new THREE.MeshBasicMaterial({
+        color: 0x1a3a14,
+        transparent: true,
+        opacity: 0.5
+      });
+      const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.y = 0.03;
+      playerGroup.add(shadow);
+
+      // Círculo único de aura grande con partículas bajo el jugador (solo al bailar)
+      playerAuraRingMesh = createAuraRingWithParticles(0x00ff66);
+      playerAuraRingMesh.visible = false;
+      playerGroup.add(playerAuraRingMesh);
+
+      scene.add(playerGroup);
+    }
+
+    function loadPlayerSkinTexture(url) {
+      loadSafeTexture(url, (tex) => {
+        playerTexture = tex;
+        if (!isEmotePlaying && playerBillboardMesh) {
+          playerBillboardMesh.material.map = tex;
+          playerBillboardMesh.material.needsUpdate = true;
+        }
+      });
+    }
+
+    /* ── CONTROLS & POINTER LOCK ── */
+    function setupControls(canvas) {
+      window.addEventListener('keydown', (e) => {
+        if (gameContainer.style.display !== 'block') return;
+
+        if (e.code === 'KeyW' || e.code === 'ArrowUp') { keys.w = true; stopEmoteIn3D(); }
+        if (e.code === 'KeyS' || e.code === 'ArrowDown') { keys.s = true; stopEmoteIn3D(); }
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') { keys.a = true; stopEmoteIn3D(); }
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') { keys.d = true; stopEmoteIn3D(); }
+        if (e.code === 'Space') { keys.space = true; stopEmoteIn3D(); }
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = true;
+
+        if (e.code === 'KeyB') {
+          if (emoteWheelModal.classList.contains('active')) {
+            emoteWheelModal.classList.remove('active');
+          } else {
+            document.exitPointerLock();
+            emoteWheelModal.classList.add('active');
+          }
+        }
+        if (e.code === 'KeyV') {
+          isThirdPerson = !isThirdPerson;
+          updateSpeakerVisuals();
+        }
+        if (e.code === 'KeyG') {
+          toggleSpeaker();
+        }
+        if (e.code === 'KeyH') {
+          if (bocinaMusicModal.classList.contains('active')) {
+            bocinaMusicModal.classList.remove('active');
+          } else {
+            document.exitPointerLock();
+            bocinaMusicModal.classList.add('active');
+          }
+        }
+        if (e.code === 'KeyE') {
+          doFarmAura();
+        }
+        if (e.code === 'Escape') {
+          emoteWheelModal.classList.remove('active');
+          bocinaMusicModal.classList.remove('active');
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = false;
+        if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.s = false;
+        if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.a = false;
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.d = false;
+        if (e.code === 'Space') keys.space = false;
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') keys.shift = false;
+      });
+
+      canvas.addEventListener('click', () => {
+        if (!emoteWheelModal.classList.contains('active') && !bocinaMusicModal.classList.contains('active')) {
+          canvas.requestPointerLock();
+        }
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (document.pointerLockElement === canvas) {
+          cameraYaw -= e.movementX * 0.0025;
+          cameraPitch = Math.max(-0.5, Math.min(1.0, cameraPitch + e.movementY * 0.0025));
+          maybePublish();
+        }
+      });
+
+      camToggleBtn.addEventListener('click', () => {
+        isThirdPerson = !isThirdPerson;
+        updateSpeakerVisuals();
+      });
+
+      if (bocinaToggleBtn) {
+        bocinaToggleBtn.addEventListener('click', () => {
+          toggleSpeaker();
+        });
+      }
+
+      window.addEventListener('resize', () => {
+        if (!renderer || !camera) return;
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    /* ── ANIMATION LOOP OPTIMIZADO (CON MULTIJUGADOR) ── */
+    let lastFrameTime = performance.now();
+    function loop3D(now) {
+      if (!is3dRunning) return;
+      animFrameId = requestAnimationFrame(loop3D);
+
+      const dt = Math.min((now - lastFrameTime) / 1000, 0.1);
+      lastFrameTime = now;
+
+      // Heartbeat continuo para sincronizar posición, skins y emotes en tiempo real
+      if (now - lastPubTime > 80) {
+        lastPubTime = now;
+        publishPos();
+      }
+
+      updatePlayerMovement(dt);
+      updateAuraNodes(dt, now * 0.001);
+      updateCamera();
+      updateOtherPlayers(dt);
+      updateExpandingAuraRings(now, dt);
+      updateFloatingAura3D(now, dt);
+
+      // Animación de rotación del círculo de aura y partículas que se elevan
+      function animateAuraRingAndParticles(ringGroup) {
+        if (!ringGroup || !ringGroup.visible) return;
+        const ud = ringGroup.userData;
+        if (!ud) return;
+
+        if (ud.ring) {
+          ud.ring.rotation.z += 1.0 * dt;
+        }
+
+        if (ud.particleData && ud.posAttr) {
+          const pos = ud.posAttr.array;
+          for (let i = 0; i < ud.particleData.length; i++) {
+            const p = ud.particleData[i];
+            p.y += p.speedY * dt;
+            p.angle += p.rotSpeed * dt;
+            if (p.y > 3.8) {
+              p.y = 0.05;
+              p.angle = Math.random() * Math.PI * 2;
+            }
+            pos[i * 3] = Math.cos(p.angle) * p.r;
+            pos[i * 3 + 1] = p.y;
+            pos[i * 3 + 2] = Math.sin(p.angle) * p.r;
+          }
+          ud.posAttr.needsUpdate = true;
+        }
+      }
+      animateAuraRingAndParticles(playerAuraRingMesh);
+      for (const id in otherPlayers) {
+        animateAuraRingAndParticles(otherPlayers[id].auraRingMesh);
+      }
+
+      // Detectar si hay CUALQUIER bocina sonando cerca (local o de otro jugador)
+      let isAnyBocinaActiveNearby = !!(isSpeakerEquipped && isSpeakerAudioPlaying);
+      if (!isAnyBocinaActiveNearby) {
+        for (const id in otherPlayers) {
+          const op = otherPlayers[id];
+          if (op.audioEl && op.currentSpeakerUrl && !op.audioEl.paused) {
+            const dist = playerPos.distanceTo(op.group.position);
+            if (dist < 35.0) {
+              isAnyBocinaActiveNearby = true;
+              break;
+            }
+          }
+        }
+      }
+
+      // La bocina SIEMPRE tiene máxima prioridad: si hay una bocina activa cerca, bajar el emote al 5%
+      if (isEmotePlaying && emoteVideo) {
+        const targetVol = isAnyBocinaActiveNearby ? 0.05 : 0.70;
+        if (Math.abs(emoteVideo.volume - targetVol) > 0.01) {
+          emoteVideo.volume = targetVol;
+        }
+      }
+
+      // Animación viva de la bocina al estar equipada (con ritmo al reproducir música)
+      if (isSpeakerEquipped) {
+        const musicBoost = isSpeakerAudioPlaying ? (Math.sin(now * 0.016) * 0.12 + Math.cos(now * 0.008) * 0.06) : 0;
+        const pulse = 1.0 + (isSpeakerAudioPlaying ? 0.06 : 0) + musicBoost + Math.sin(now * 0.008) * 0.04;
+        if (playerSpeakerMesh && playerSpeakerMesh.visible) {
+          playerSpeakerMesh.scale.set(pulse, pulse, 1);
+        }
+        if (fpSpeakerMesh && fpSpeakerMesh.visible) {
+          const swayX = (keys.w || keys.s || keys.a || keys.d) ? Math.cos(now * 0.01) * 0.02 : 0;
+          const swayY = (keys.w || keys.s || keys.a || keys.d) ? Math.sin(now * 0.02) * 0.02 : Math.sin(now * 0.004) * 0.008;
+          fpSpeakerMesh.position.set(0.42 + swayX, -0.32 + swayY + (isSpeakerAudioPlaying ? musicBoost * 0.15 : 0), -0.75);
+          fpSpeakerMesh.scale.set(pulse, pulse, 1);
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function updatePlayerMovement(dt) {
+      if (isEmotePlaying) return;
+
+      const speed = keys.shift ? 16 : 9.5;
+
+      const inputForward = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
+      const inputRight = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+
+      if (inputForward !== 0 || inputRight !== 0) {
+        const len = Math.hypot(inputForward, inputRight);
+        const nFwd = inputForward / len;
+        const nRgt = inputRight / len;
+
+        const fwdX = -Math.sin(cameraYaw);
+        const fwdZ = -Math.cos(cameraYaw);
+        const rgtX = Math.cos(cameraYaw);
+        const rgtZ = -Math.sin(cameraYaw);
+
+        const moveX = (fwdX * nFwd) + (rgtX * nRgt);
+        const moveZ = (fwdZ * nFwd) + (rgtZ * nRgt);
+
+        playerPos.x += moveX * speed * dt;
+        playerPos.z += moveZ * speed * dt;
+
+        maybePublish();
+      }
+
+      if (keys.space && isGrounded) {
+        playerVel.y = 9.5;
+        isGrounded = false;
+        playSound('jump');
+        maybePublish(true);
+      }
+
+      playerVel.y -= 25 * dt;
+      playerPos.y += playerVel.y * dt;
+
+      if (playerPos.y <= 0) {
+        playerPos.y = 0;
+        playerVel.y = 0;
+        isGrounded = true;
+      }
+
+      playerGroup.position.copy(playerPos);
+
+      if (playerBillboardMesh) {
+        playerBillboardMesh.rotation.y = cameraYaw;
+      }
+    }
+
+    function updateCamera() {
+      if (isThirdPerson) {
+        const dist = 6.0;
+        const camX = playerPos.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * dist;
+        const camZ = playerPos.z + Math.cos(cameraYaw) * Math.cos(cameraPitch) * dist;
+        const camY = playerPos.y + 1.8 + Math.sin(cameraPitch) * dist;
+
+        camera.position.set(camX, Math.max(camY, 0.4), camZ);
+        camera.lookAt(playerPos.x, playerPos.y + 1.3, playerPos.z);
+        if (playerBillboardMesh) playerBillboardMesh.visible = true;
+        if (playerSpeakerMesh) playerSpeakerMesh.visible = isSpeakerEquipped;
+        if (fpSpeakerMesh) fpSpeakerMesh.visible = false;
+      } else {
+        camera.position.set(playerPos.x, playerPos.y + 1.5, playerPos.z);
+        const lookTarget = new THREE.Vector3(
+          playerPos.x - Math.sin(cameraYaw) * 10,
+          playerPos.y + 1.5 - Math.sin(cameraPitch) * 10,
+          playerPos.z - Math.cos(cameraYaw) * 10
+        );
+        camera.lookAt(lookTarget);
+        if (playerBillboardMesh) playerBillboardMesh.visible = false;
+        if (playerSpeakerMesh) playerSpeakerMesh.visible = false;
+        if (fpSpeakerMesh) fpSpeakerMesh.visible = isSpeakerEquipped;
+      }
+    }
+
+    function updateOtherPlayers(dt) {
+      const activeAudioSources = [];
+
+      // Detectar si hay CUALQUIER bocina sonando en el área
+      let isAnyBocinaActiveNearby = !!(isSpeakerEquipped && isSpeakerAudioPlaying);
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        if (op.audioEl && op.currentSpeakerUrl && !op.audioEl.paused) {
+          if (playerPos.distanceTo(op.group.position) < 35.0) {
+            isAnyBocinaActiveNearby = true;
+            break;
+          }
+        }
+      }
+
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        op.group.position.lerp(op.targetPos, 0.2);
+
+        // Billboard orient to camera (vista frontal no invertida)
+        op.mesh.rotation.y = cameraYaw;
+        op.nameplateMesh.rotation.y = cameraYaw;
+
+        const dist = playerPos.distanceTo(op.group.position);
+        const hasActiveBocina = !!(op.audioEl && op.currentSpeakerUrl && !op.audioEl.paused);
+        const hasActiveEmote = !!(op.videoEl && op.currentEmoteVideo && !op.videoEl.paused);
+
+        // Lógica de Pelea de Aura / Círculo compartido:
+        // Si este jugador está bailando dentro de un círculo ya existente, no crearle uno duplicado
+        if (hasActiveEmote || op.data?.hasAuraRing) {
+          let insideExistingCircle = false;
+          // Dentro de mi círculo activo:
+          if (playerAuraRingMesh && playerAuraRingMesh.visible && dist < 4.8) {
+            insideExistingCircle = true;
+          }
+          // O dentro del círculo de otro jugador ya establecido:
+          if (!insideExistingCircle) {
+            for (const otherId in otherPlayers) {
+              if (otherId !== id) {
+                const otherOp = otherPlayers[otherId];
+                if (otherOp.auraRingMesh && otherOp.auraRingMesh.visible) {
+                  if (op.group.position.distanceTo(otherOp.group.position) < 4.8) {
+                    insideExistingCircle = true;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          if (op.auraRingMesh) {
+            op.auraRingMesh.visible = !insideExistingCircle && hasActiveEmote;
+          }
+        }
+
+        // Si el jugador baila Y tiene bocina:
+        if (hasActiveEmote && hasActiveBocina) {
+          op.videoEl.muted = false;
+          activeAudioSources.push({
+            type: 'emote',
+            el: op.videoEl,
+            dist: dist,
+            maxDist: 32.0,
+            baseVol: 0.75
+          });
+          activeAudioSources.push({
+            type: 'bocina',
+            el: op.audioEl,
+            dist: dist,
+            maxDist: 35.0,
+            baseVol: 0.90 * speakerVolume
+          });
+        } else if (hasActiveEmote) {
+          // Solo baila emote sin bocina
+          op.videoEl.muted = false;
+          activeAudioSources.push({
+            type: 'emote',
+            el: op.videoEl,
+            dist: dist,
+            maxDist: 32.0,
+            baseVol: 0.75
+          });
+        } else if (hasActiveBocina) {
+          // Solo tiene bocina activa
+          activeAudioSources.push({
+            type: 'bocina',
+            el: op.audioEl,
+            dist: dist,
+            maxDist: 35.0,
+            baseVol: 0.90 * speakerVolume
+          });
+        }
+      }
+
+      // Ordenar por distancia (la fuente más cercana tiene mayor prioridad)
+      activeAudioSources.sort((a, b) => a.dist - b.dist);
+
+      // Asignar volúmenes con prioridad total a la bocina sobre los emotes
+      activeAudioSources.forEach((src, idx) => {
+        if (src.dist > src.maxDist) {
+          src.el.volume = 0;
+          return;
+        }
+
+        // Caída suave de volumen por distancia
+        const norm = Math.max(0, 1 - (src.dist / src.maxDist));
+        const distFactor = norm * norm;
+
+        let rankFactor = 1.0;
+        if (isAnyBocinaActiveNearby) {
+          // Si hay bocina en el área: la bocina domina al 100%, todos los emotes bajan al 6% de fondo
+          if (src.type === 'bocina') {
+            rankFactor = (idx === 0) ? 1.0 : 0.50;
+          } else {
+            rankFactor = 0.06;
+          }
+        } else {
+          // Si no hay bocina: el emote más cercano suena al 100%, los demás bajan suavemente
+          if (idx === 0) rankFactor = 1.0;
+          else if (idx === 1) rankFactor = 0.35;
+          else rankFactor = 0.15;
+        }
+
+        const targetVol = Math.max(0, Math.min(1.0, src.baseVol * distFactor * rankFactor));
+        const currentVol = src.el.volume || 0;
+        src.el.volume = currentVol + (targetVol - currentVol) * 0.25;
+      });
+    }
+
+    function updateAuraNodes(dt, time) {
+      for (let i = 0; i < auraNodes.length; i++) {
+        const node = auraNodes[i];
+        node.mesh.rotation.y += 1.2 * dt;
+        node.mesh.position.y = 1.8 + Math.sin(time * 3 + i) * 0.25;
+
+        const dx = playerPos.x - node.pos.x;
+        const dz = playerPos.z - node.pos.z;
+        if (dx * dx + dz * dz < 9 && Date.now() - node.collectedTime > 3000) {
+          node.collectedTime = Date.now();
+          collectAuraNode(node);
+        }
+      }
+    }
+
+    /* ══ EFECTO DE CÍRCULOS DE AURA GRANDES ══ */
+    const expandingAuraRings = [];
+    const AURA_RING_COLORS = [0x00ff66, 0x00f0ff, 0xbd00ff, 0xffe600, 0xff0055];
+    let ringColorIdx = 0;
+
+    function spawnBigAuraRing(x, z, color = null) {
+      if (!scene) return;
+      const c = color !== null ? color : AURA_RING_COLORS[ringColorIdx % AURA_RING_COLORS.length];
+      ringColorIdx++;
+
+      // Anillo interior grande idéntico a los de los diamantes pero más grande
+      const ringGeo = new THREE.RingGeometry(2.4, 2.9, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: c,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.95
+      });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = -Math.PI / 2;
+      ringMesh.position.set(x, 0.05, z);
+      scene.add(ringMesh);
+
+      // Anillo exterior concéntrico gigante
+      const outerGeo = new THREE.RingGeometry(3.6, 4.0, 32);
+      const outerMat = new THREE.MeshBasicMaterial({
+        color: c,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85
+      });
+      const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+      outerMesh.rotation.x = -Math.PI / 2;
+      outerMesh.position.set(x, 0.05, z);
+      scene.add(outerMesh);
+
+      expandingAuraRings.push({
+        mesh: ringMesh,
+        outer: outerMesh,
+        scale: 0.6,
+        maxScale: 2.8,
+        createdAt: performance.now()
+      });
+    }
+
+    function updateExpandingAuraRings(now, dt) {
+      for (let i = expandingAuraRings.length - 1; i >= 0; i--) {
+        const r = expandingAuraRings[i];
+        const progress = (now - r.createdAt) / 850;
+        if (progress >= 1.0) {
+          scene.remove(r.mesh);
+          scene.remove(r.outer);
+          r.mesh.geometry.dispose();
+          r.mesh.material.dispose();
+          r.outer.geometry.dispose();
+          r.outer.material.dispose();
+          expandingAuraRings.splice(i, 1);
+        } else {
+          const currentScale = 0.6 + progress * (r.maxScale - 0.6);
+          r.mesh.scale.set(currentScale, currentScale, 1);
+          r.outer.scale.set(currentScale, currentScale, 1);
+          r.mesh.rotation.z += 1.8 * dt;
+          r.outer.rotation.z -= 1.2 * dt;
+          const alpha = Math.max(0, 1.0 - Math.pow(progress, 1.4));
+          r.mesh.material.opacity = alpha * 0.95;
+          r.outer.material.opacity = alpha * 0.85;
+        }
+      }
+    }
+
+    /* ══ SISTEMA DE NÚMEROS FLOTANTES DE AURA EN 3D ══ */
+    const floatingAura3DMeshes = [];
+    let lastLocalAuraGain = null;
+
+    function spawnFloatingAura3D(x, y, z, text, color = '#ffe600') {
+      if (!scene) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = 384;
+      canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+
+      ctx.font = '900 36px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Borde y sombra gruesa negra para máxima visibilidad en 3D
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#000000';
+      ctx.strokeText(text, 192, 48);
+
+      ctx.fillStyle = color;
+      ctx.fillText(text, 192, 48);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.minFilter = THREE.LinearFilter;
+
+      const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthTest: false,
+        depthWrite: false
+      });
+
+      const geo = new THREE.PlaneGeometry(2.4, 0.6);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(x + (Math.random() - 0.5) * 0.3, y + 2.9, z + (Math.random() - 0.5) * 0.3);
+      mesh.renderOrder = 9999;
+      scene.add(mesh);
+
+      floatingAura3DMeshes.push({
+        mesh: mesh,
+        createdAt: performance.now(),
+        duration: 850,
+        vy: 2.2,
+        driftX: (Math.random() - 0.5) * 0.4
+      });
+    }
+
+    function updateFloatingAura3D(now, dt) {
+      for (let i = floatingAura3DMeshes.length - 1; i >= 0; i--) {
+        const item = floatingAura3DMeshes[i];
+        const elapsed = now - item.createdAt;
+        if (elapsed >= item.duration) {
+          scene.remove(item.mesh);
+          item.mesh.geometry.dispose();
+          item.mesh.material.map?.dispose();
+          item.mesh.material.dispose();
+          floatingAura3DMeshes.splice(i, 1);
+        } else {
+          const progress = elapsed / item.duration;
+          item.mesh.position.y += item.vy * dt;
+          item.mesh.position.x += item.driftX * dt;
+          item.mesh.rotation.y = cameraYaw;
+
+          const pop = progress < 0.2 ? (1.0 + (1.0 - progress / 0.2) * 0.3) : 1.0;
+          item.mesh.scale.set(pop, pop, 1);
+          item.mesh.material.opacity = Math.max(0, 1.0 - Math.pow(progress, 1.4));
+        }
+      }
+    }
+
+    function collectAuraNode(node) {
+      playSound('farm');
+      const bonus = node.pos.val || 200;
+      auraCount += bonus;
+      hudAuraVal.textContent = auraCount.toLocaleString();
+
+      node.mesh.scale.set(1.6, 1.6, 1.6);
+      setTimeout(() => node.mesh.scale.set(1, 1, 1), 180);
+
+      spawnBigAuraRing(node.pos.x, node.pos.z, node.pos.c);
+      
+      const nodeText = `+${bonus} AURA ⚡`;
+      lastLocalAuraGain = { text: nodeText, time: Date.now() };
+      spawnFloatingAura(nodeText);
+      spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, nodeText, '#00ff66');
+      maybePublish(true);
+    }
+
+    /* ── HUD FARM BUTTON (FARMEAR AURA + EMOTE ALEATORIO) ══ */
+    function playRandomEmoteForChar() {
+      if (isEmotePlaying) return;
+
+      const validEmotes = rawEmotes.filter(e => !!getEmoteVideoForCharacter(e, selectedChar.name));
+      if (validEmotes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * validEmotes.length);
+        const chosen = validEmotes[randomIndex];
+        playEmoteIn3D(chosen);
+      }
+    }
+
+    function doFarmAura() {
+      playSound('farm');
+      const gain = 100;
+      auraCount += gain;
+      hudAuraVal.textContent = auraCount.toLocaleString();
+
+      const text = `+${gain} AURA ⚡`;
+      lastLocalAuraGain = { text: text, time: Date.now() };
+
+      spawnFloatingAura(text);
+      spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, text, '#ffe600');
+
+      if (!isEmotePlaying) {
+        playRandomEmoteForChar();
+      }
+
+      maybePublish(true);
+    }
+
+    hudFarmOrb.addEventListener('click', doFarmAura);
+
+    function spawnFloatingAura(text) {
+      const rect = hudFarmOrb.getBoundingClientRect();
+      const p = document.createElement('div');
+      p.className = 'aura-float-num';
+      p.textContent = text;
+      p.style.left = `${rect.left + rect.width / 2 + (Math.random() * 30 - 15)}px`;
+      p.style.top = `${rect.top}px`;
+      p.style.setProperty('--tx', `${Math.random() * 40 - 20}px`);
+      document.body.appendChild(p);
+
+      setTimeout(() => p.remove(), 700);
+    }
+  </script>
+</body>
+</html>
