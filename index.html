@@ -532,6 +532,7 @@
       justify-content: space-between;
       align-items: flex-end;
       width: 100%;
+      pointer-events: none;
     }
 
     .hud-controls-hint {
@@ -659,6 +660,10 @@
       box-shadow: 0 4px 15px rgba(189, 0, 255, 0.6);
       transition: transform 0.05s ease;
       pointer-events: auto;
+      margin-left: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
     }
 
     .hud-farm-orb:hover {
@@ -930,11 +935,37 @@
       .hud-controls-hint {
         display: none;
       }
+      .hud-bottom {
+        justify-content: flex-end;
+        padding-right: 5px;
+      }
+      .hud-farm-orb {
+        width: 86px;
+        height: 86px;
+        margin-left: auto;
+        margin-right: 12px;
+        margin-bottom: 12px;
+        position: relative;
+        z-index: 50;
+      }
+      .mobile-action-buttons {
+        bottom: 115px;
+        right: 20px;
+        gap: 10px;
+        z-index: 50;
+      }
+      .virtual-joystick-zone {
+        bottom: 25px;
+        left: 20px;
+        width: 130px;
+        height: 130px;
+        z-index: 50;
+      }
       .hud-leaderboard {
-        width: 170px;
-        top: 55px;
-        right: 10px;
-        padding: 5px 8px;
+        width: 160px;
+        top: 52px;
+        right: 8px;
+        padding: 4px 6px;
       }
     }
   </style>
@@ -1141,17 +1172,21 @@
 
     function resolveUrl(url) {
       if (!url) return '';
-      // Si viene con ruta local file:/// o de disco, extraer solo el nombre de archivo
-      if (url.startsWith('file://') || url.includes(':\\') || url.includes(':/')) {
-        url = url.split('/').pop().split('\\').pop();
-      }
-      if (url.includes('github.com/') && url.includes('/blob/')) {
-        url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
-      }
+      // Si ya es una URL web completa http/https o data URI
       if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+        if (url.includes('github.com/') && url.includes('/blob/')) {
+          url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
+        }
         return url;
       }
-      const cleanName = url.replace(/^\/+/, '');
+      // Si es una ruta local file:// o de disco o relativa
+      const cleanName = url.split('?')[0].split('#')[0].split('/').pop().split('\\').pop();
+      if (cleanName === 'bocina.png') {
+        return 'https://raw.githubusercontent.com/farmearaura/farmearaura.github.io/main/bocina.png';
+      }
+      if (cleanName === 'auraphonk.mp3') {
+        return 'https://raw.githubusercontent.com/farmearaura/farmearaura.github.io/main/auraphonk.mp3';
+      }
       return 'https://raw.githubusercontent.com/yoyoyogogo/png/main/' + cleanName;
     }
 
@@ -1302,7 +1337,7 @@
     localSpeakerAudio.loop = true;
     localSpeakerAudio.crossOrigin = "anonymous";
     let isSpeakerAudioPlaying = false;
-    let speakerMusicUrl = "https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3";
+    let speakerMusicUrl = "https://raw.githubusercontent.com/farmearaura/farmearaura.github.io/main/auraphonk.mp3";
     let speakerVolume = 0.7;
 
     function playSpeakerAudio(url) {
@@ -1419,7 +1454,7 @@
 
     if (presetAuraPhonkBtn) {
       presetAuraPhonkBtn.addEventListener('click', () => {
-        const phonkUrl = "https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3";
+        const phonkUrl = "https://raw.githubusercontent.com/farmearaura/farmearaura.github.io/main/auraphonk.mp3";
         speakerMusicInput.value = phonkUrl;
         playSpeakerAudio(phonkUrl);
       });
@@ -2730,7 +2765,10 @@
 
       canvas.addEventListener('click', () => {
         if (!emoteWheelModal.classList.contains('active') && !bocinaMusicModal.classList.contains('active')) {
-          canvas.requestPointerLock();
+          try {
+            const p = canvas.requestPointerLock();
+            if (p && typeof p.catch === 'function') p.catch(() => {});
+          } catch (e) {}
         }
       });
 
