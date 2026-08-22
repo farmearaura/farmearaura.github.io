@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>FARMEAR AURA 3D - Battle Royale</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -173,6 +174,110 @@
       box-shadow: 0 2px 0 #003b8e;
     }
 
+    /* Hall of Fame / Top Victorias en Pantalla de Inicio */
+    .start-leaderboard-box {
+      width: min(390px, 92vw);
+      background: rgba(10, 16, 36, 0.94);
+      border: 2px solid rgba(0, 240, 255, 0.5);
+      border-radius: 12px;
+      padding: 10px 14px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.22);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+      z-index: 20;
+    }
+
+    .start-leaderboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+      font-size: 8px;
+      font-weight: bold;
+      color: #ffe600;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 8px rgba(255, 230, 0, 0.5);
+    }
+
+    .start-leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      max-height: 130px;
+      padding-right: 2px;
+    }
+
+    .start-leaderboard-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 7px;
+      color: #e0e6f5;
+    }
+
+    .start-leaderboard-item.rank-top-1 {
+      background: rgba(255, 230, 0, 0.12);
+      border-color: rgba(255, 230, 0, 0.5);
+    }
+
+    .start-leaderboard-rank {
+      font-weight: 900;
+      width: 20px;
+      text-align: center;
+      font-size: 8px;
+    }
+    .start-leaderboard-rank.r-1 { color: #ffe600; }
+    .start-leaderboard-rank.r-2 { color: #d0d5dd; }
+    .start-leaderboard-rank.r-3 { color: #d97706; }
+
+    .start-leaderboard-user {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .start-leaderboard-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid #00f0ff;
+      background-size: cover;
+      background-position: center top;
+      background-color: #081026;
+      flex-shrink: 0;
+    }
+
+    .start-leaderboard-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: bold;
+    }
+
+    .start-leaderboard-wins {
+      font-weight: 900;
+      color: #ffe600;
+      background: rgba(255, 230, 0, 0.15);
+      border: 1px solid #ffe600;
+      border-radius: 10px;
+      padding: 2px 7px;
+      font-size: 7px;
+      flex-shrink: 0;
+      text-shadow: 0 0 6px rgba(255, 230, 0, 0.6);
+    }
+
     .credits {
       position: absolute;
       bottom: 20px;
@@ -289,6 +394,33 @@
 
     .character-card.selected .character-card-name {
       color: #ffe600;
+    }
+
+    .character-card.add-character-card {
+      border: 2px dashed #00ff66;
+      background: rgba(0, 255, 102, 0.08);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .character-card.add-character-card:hover {
+      border-color: #ffffff;
+      border-style: solid;
+      background: rgba(0, 255, 102, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px rgba(0, 255, 102, 0.45);
+    }
+
+    .add-character-icon {
+      font-size: 32px;
+      line-height: 1;
+      margin-bottom: 6px;
+      filter: drop-shadow(0 0 8px #00ff66);
+      transition: transform 0.15s ease;
+    }
+
+    .character-card.add-character-card:hover .add-character-icon {
+      transform: scale(1.18);
     }
 
     .preview-panel {
@@ -549,20 +681,20 @@
       color: #00f0ff;
     }
 
-    /* Leaderboard / Tabla de Posiciones a la Derecha */
+    /* Leaderboard & Versus Head-to-Head (Jugador 1 VS Jugador 2) */
     .hud-leaderboard {
       position: absolute;
       top: 68px;
       right: 18px;
-      width: 220px;
-      max-width: 45vw;
-      background: rgba(10, 16, 35, 0.88);
-      border: 2px solid rgba(0, 240, 255, 0.45);
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 0 10px rgba(0, 240, 255, 0.1);
-      padding: 8px 10px;
+      width: 290px;
+      max-width: 48vw;
+      background: rgba(10, 16, 35, 0.92);
+      border: 2px solid #00f0ff;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.25), 0 4px 20px rgba(0, 0, 0, 0.7);
+      padding: 9px 11px;
       pointer-events: none;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(6px);
       z-index: 20;
     }
 
@@ -571,19 +703,211 @@
       justify-content: space-between;
       align-items: center;
       padding-bottom: 6px;
-      margin-bottom: 6px;
-      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+      margin-bottom: 7px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.35);
       font-size: 8px;
       font-weight: bold;
       color: #00f0ff;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Duelo Versus Box Centrado Arriba */
+    .hud-vs-top-center {
+      position: fixed;
+      top: 52px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(390px, 92vw);
+      z-index: 85;
+      pointer-events: none;
+      display: none;
+    }
+
+    .hud-vs-top-center.active {
+      display: block;
+      animation: vsBannerDrop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes vsBannerDrop {
+      0% { opacity: 0; transform: translate(-50%, -15px) scale(0.92); }
+      100% { opacity: 1; transform: translate(-50%, 0) scale(1.0); }
+    }
+
+    .hud-versus-box {
+      background: rgba(8, 14, 32, 0.95);
+      border: 2px solid #ff0055;
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-shadow: 0 0 20px rgba(255, 0, 85, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hud-versus-players {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .hud-vs-fighter {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 38%;
+      text-align: center;
+      gap: 3px;
+    }
+
+    .hud-vs-avatar-wrap {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #00f0ff;
+      overflow: hidden;
+      background: #081026;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+    }
+
+    .hud-vs-fighter.p2 .hud-vs-avatar-wrap {
+      border-color: #ff0055;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.6);
+    }
+
+    .hud-vs-avatar-wrap img {
+      width: 85%;
+      height: 85%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    .hud-vs-name {
+      font-size: 7px;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      text-shadow: 1px 1px #000;
+    }
+
+    .hud-vs-aura {
+      font-size: 8px;
+      font-weight: bold;
+      color: #ffe600;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .hud-vs-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 24%;
+      text-align: center;
+    }
+
+    .hud-vs-badge-text {
+      font-size: 11px;
+      font-weight: 900;
+      color: #ff0055;
+      text-shadow: 0 0 8px #ff0055, 2px 2px 0 #000;
+      animation: vsPulse 1.2s infinite alternate;
+    }
+
+    @keyframes vsPulse {
+      0% { transform: scale(0.92); }
+      100% { transform: scale(1.12); }
+    }
+
+    .hud-vs-bar-container {
+      position: relative;
+      width: 100%;
+      margin: 4px 0 2px 0;
+    }
+
+    .hud-vs-bar-track {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      background: linear-gradient(90deg, rgba(8, 16, 32, 0.8) 0%, rgba(255, 0, 85, 0.75) 100%);
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+    }
+
+    .hud-vs-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00f0ff 0%, #00ff66 75%, #ffffff 100%);
+      transition: width 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 0 12px #00ff66;
+    }
+
+    /* Línea central de referencia 50% */
+    .hud-vs-center-line {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      left: 50%;
+      width: 2px;
+      background: rgba(255, 230, 0, 0.85);
+      box-shadow: 0 0 6px #ffe600;
+      transform: translateX(-50%);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    /* Núcleo de Choque / Energy Clash Spark en el punto exacto de encuentro */
+    .hud-vs-clash-spark {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 18px;
+      height: 18px;
+      background: radial-gradient(circle, #ffffff 15%, #ffe600 55%, rgba(255, 0, 85, 0.9) 100%);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 14px #ffe600, 0 0 24px #ff0055, inset 0 0 6px #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      z-index: 5;
+      pointer-events: none;
+      animation: clashSparkPulse 0.55s infinite alternate ease-in-out;
+      transition: left 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .hud-vs-clash-spark::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 1px dashed #ffe600;
+      border-radius: 50%;
+      animation: clashRingRotate 1.2s linear infinite;
+    }
+
+    @keyframes clashSparkPulse {
+      0% { transform: translate(-50%, -50%) scale(0.9) rotate(0deg); box-shadow: 0 0 10px #ffe600, 0 0 18px #ff0055; }
+      100% { transform: translate(-50%, -50%) scale(1.25) rotate(15deg); box-shadow: 0 0 20px #ffe600, 0 0 32px #00ff66; }
+    }
+
+    @keyframes clashRingRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .hud-leaderboard-list {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      max-height: 240px;
+      gap: 3px;
+      max-height: 160px;
       overflow: hidden;
     }
 
@@ -594,7 +918,7 @@
       gap: 6px;
       padding: 3px 6px;
       border-radius: 5px;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
       font-size: 7px;
       color: #e0e6f5;
     }
@@ -625,8 +949,8 @@
     }
 
     .hud-leaderboard-avatar {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       border-radius: 50%;
       border: 1px solid rgba(255, 255, 255, 0.4);
       background-size: cover;
@@ -640,10 +964,30 @@
       white-space: nowrap;
     }
 
-    .hud-leaderboard-aura {
+    .hud-leaderboard-stats {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .hud-leaderboard-wins {
       font-weight: bold;
       color: #ffe600;
+      font-size: 6px;
+      background: rgba(255, 230, 0, 0.15);
+      border: 1px solid rgba(255, 230, 0, 0.4);
+      padding: 1px 4px;
+      border-radius: 6px;
+      text-shadow: 0 0 4px #ffe600;
+      white-space: nowrap;
+    }
+
+    .hud-leaderboard-aura {
+      font-weight: bold;
+      color: #00ff66;
       flex-shrink: 0;
+      font-size: 7px;
     }
 
     .hud-farm-orb {
@@ -779,16 +1123,44 @@
       pointer-events: none;
     }
 
-    /* Floating aura numbers */
+    /* Floating aura numbers con animación dinámica hacia arriba y desvanecimiento */
     .aura-float-num {
-      position: absolute;
-      font-size: 13px;
+      position: fixed;
+      font-size: 15px;
+      font-weight: 900;
       color: #ffe600;
-      font-weight: bold;
       pointer-events: none;
-      animation: floatAura 0.7s ease-out forwards;
-      text-shadow: 2px 2px 0 #000;
-      z-index: 120;
+      text-shadow: 0 0 12px rgba(255, 230, 0, 0.85), 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+      z-index: 9999;
+      animation: floatAuraAnim 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      white-space: nowrap;
+      user-select: none;
+      letter-spacing: 0.5px;
+    }
+
+    .aura-float-num.crit {
+      font-size: 19px;
+      color: #ff0055;
+      text-shadow: 0 0 18px rgba(255, 0, 85, 0.95), 3px 3px 0 #000, -3px -3px 0 #000;
+    }
+
+    @keyframes floatAuraAnim {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 0) scale(0.5) rotate(var(--rot, 0deg));
+      }
+      18% {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--tx, 0px) * 0.35), -28px) scale(1.3) rotate(var(--rot, 0deg));
+      }
+      70% {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--tx, 0px) * 0.8), -65px) scale(1.05) rotate(var(--rot, 0deg));
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--tx, 0px)), -100px) scale(0.8) rotate(var(--rot, 0deg));
+      }
     }
 
     /* Efecto visual de Impacto Crítico en Pantalla */
@@ -832,6 +1204,211 @@
       22% { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(2deg); }
       70% { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(0deg); }
       100% { opacity: 0; transform: translate(-50%, -65%) scale(1.1); }
+    }
+
+    /* Popup de Victoria en Duelo de Aura por Clics */
+    .vs-victory-popup {
+      position: absolute;
+      top: 36%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      background: radial-gradient(circle, rgba(12, 18, 48, 0.96) 0%, rgba(6, 9, 24, 0.98) 100%);
+      border: 4px solid #ffe600;
+      border-radius: 16px;
+      box-shadow: 0 0 35px #ffe600, 0 0 70px rgba(0, 240, 255, 0.45);
+      padding: 20px 30px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      z-index: 180;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .vs-victory-popup.active {
+      display: flex;
+      animation: victoryPopupAnim 3.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes victoryPopupAnim {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-5deg); }
+      15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(0deg); }
+      25% { transform: translate(-50%, -50%) scale(1.0); }
+      80% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
+      100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+    }
+
+    .vs-victory-badge {
+      font-size: clamp(13px, 2.2vw, 20px);
+      color: #ffe600;
+      text-shadow: 0 0 15px #ffe600, 2px 2px #000;
+      letter-spacing: 2px;
+      font-weight: 900;
+    }
+
+    .vs-victory-winner {
+      font-size: clamp(14px, 2.8vw, 24px);
+      color: #00ff66;
+      text-shadow: 0 0 20px #00ff66, 3px 3px #000;
+      font-weight: 900;
+    }
+
+    .vs-victory-bonus {
+      font-size: clamp(9px, 1.6vw, 13px);
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid #00f0ff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-top: 4px;
+    }
+
+    /* ══ PANTALLA GTA V WASTED (DERROTADO EN DUELO) ══ */
+    .wasted-screen-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, rgba(140, 0, 0, 0.45) 0%, rgba(10, 0, 0, 0.92) 100%);
+      backdrop-filter: grayscale(100%) contrast(140%);
+      -webkit-backdrop-filter: grayscale(100%) contrast(140%);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 99999;
+      pointer-events: auto; /* Permitir interactuar con los botones */
+      cursor: default;
+    }
+
+    .wasted-screen-overlay.active {
+      display: flex;
+      animation: wastedFadeIn 0.3s ease-out forwards;
+    }
+
+    @keyframes wastedFadeIn {
+      0% { opacity: 0; transform: scale(1.06); }
+      100% { opacity: 1; transform: scale(1.0); }
+    }
+
+    .wasted-letterbox-top, .wasted-letterbox-bottom {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 6vh;
+      background: #000;
+      box-shadow: 0 0 15px #000;
+      pointer-events: none;
+    }
+    .wasted-letterbox-top { top: 0; }
+    .wasted-letterbox-bottom { bottom: 0; }
+
+    .wasted-title-text {
+      font-family: 'Arial Black', Impact, sans-serif;
+      font-size: clamp(48px, 11vw, 110px);
+      font-weight: 900;
+      color: #d60000;
+      text-transform: uppercase;
+      letter-spacing: 10px;
+      text-shadow: 0 0 45px rgba(255, 0, 0, 0.95), 5px 5px 0 #000;
+      animation: wastedTextZoom 0.8s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+      transform-origin: center;
+    }
+
+    @keyframes wastedTextZoom {
+      0% { transform: scale(1.45); opacity: 0; }
+      100% { transform: scale(1.0); opacity: 1; }
+    }
+
+    .wasted-sub-text {
+      font-family: 'Press Start 2P', cursive;
+      font-size: clamp(9px, 2.2vw, 16px);
+      color: #ff5555;
+      margin-top: 16px;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0 #000, 0 0 15px rgba(255, 0, 0, 0.6);
+      animation: wastedSubFade 0.6s ease-out 0.2s both;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    @keyframes wastedSubFade {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Botones de Reaparición estilo Minecraft con retraso de aparición */
+    .wasted-actions-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 26px;
+      z-index: 100;
+      animation: wastedButtonsFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) 2.2s both;
+    }
+
+    @keyframes wastedButtonsFade {
+      0% { opacity: 0; transform: translateY(22px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .wasted-btn {
+      width: 290px;
+      max-width: 86vw;
+      padding: 13px 20px;
+      font-size: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .wasted-btn-respawn {
+      background: linear-gradient(180deg, #1b3820 0%, #0d1e12 100%);
+      border: 2px solid #00ff66;
+      color: #00ff66;
+      box-shadow: 0 0 16px rgba(0, 255, 102, 0.35), inset 0 0 8px rgba(0, 255, 102, 0.15);
+    }
+
+    .wasted-btn-respawn:hover {
+      background: #00ff66;
+      color: #000;
+      text-shadow: none;
+      box-shadow: 0 0 25px #00ff66;
+      transform: scale(1.04);
+    }
+
+    .wasted-btn-menu {
+      background: linear-gradient(180deg, #381b1b 0%, #1e0d0d 100%);
+      border: 2px solid #ff4444;
+      color: #ff8888;
+      box-shadow: 0 0 15px rgba(255, 68, 68, 0.25);
+    }
+
+    .wasted-btn-menu:hover {
+      background: #ff4444;
+      color: #fff;
+      text-shadow: none;
+      box-shadow: 0 0 25px #ff4444;
+      transform: scale(1.04);
+    }
+
+    /* Botón de Farmeo Deshabilitado durante la celebración/wasted */
+    .hud-farm-orb.disabled {
+      opacity: 0.45;
+      filter: grayscale(80%) brightness(0.7);
+      pointer-events: none !important;
+      cursor: not-allowed;
+      transform: scale(0.92);
+      box-shadow: none;
     }
 
     /* ══ CONTROLES MÓVILES (JOYSTICK VIRTUAL Y BOTONES TÁCTILES) ══ */
@@ -968,6 +1545,357 @@
         padding: 4px 6px;
       }
     }
+
+    /* ================= SERVERS BROWSER SCREEN ================= */
+    #servers-screen {
+      padding: 55px 25px 25px 25px;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .servers-wrapper {
+      width: 100%;
+      height: 100%;
+      max-height: calc(100vh - 90px);
+      display: flex;
+      flex-direction: column;
+      background: rgba(12, 18, 38, 0.92);
+      border: 2px solid rgba(0, 240, 255, 0.4);
+      border-radius: 14px;
+      padding: 18px 24px;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .servers-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .servers-title-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .servers-title {
+      font-size: clamp(13px, 2vw, 19px);
+      color: #00f0ff;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .servers-sub {
+      font-size: 8px;
+      color: #ffe600;
+      letter-spacing: 0.5px;
+    }
+
+    .p2p-my-status {
+      font-size: 9px;
+      color: #00ff66;
+      background: rgba(0, 255, 102, 0.12);
+      border: 1px solid rgba(0, 255, 102, 0.4);
+      padding: 6px 14px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .p2p-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #00ff66;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff66;
+      animation: p2pPulse 1.5s infinite alternate;
+    }
+
+    @keyframes p2pPulse {
+      0% { opacity: 0.5; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1.15); }
+    }
+
+    .servers-toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-server-action {
+      font-size: 9px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid #fff;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+      text-shadow: 1px 1px #000;
+    }
+
+    .btn-server-action:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    .btn-server-action:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+    }
+
+    .btn-server-create {
+      background: linear-gradient(180deg, #00ff66 0%, #009933 100%);
+      box-shadow: 0 4px 0 #006622;
+      color: #000;
+      font-weight: bold;
+      text-shadow: none;
+    }
+
+    .btn-server-refresh {
+      background: linear-gradient(180deg, #00f0ff 0%, #0072ff 100%);
+      box-shadow: 0 4px 0 #003b8e;
+    }
+
+    .btn-server-direct {
+      background: linear-gradient(180deg, #bd00ff 0%, #660099 100%);
+      box-shadow: 0 4px 0 #440066;
+    }
+
+    .btn-server-solo {
+      background: linear-gradient(180deg, #ff9900 0%, #cc5500 100%);
+      box-shadow: 0 4px 0 #883300;
+      margin-left: auto;
+    }
+
+    .servers-list-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 6px;
+    }
+
+    .servers-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+    .servers-list-container::-webkit-scrollbar-thumb {
+      background: #00f0ff;
+      border-radius: 3px;
+    }
+
+    .server-card {
+      background: rgba(18, 26, 52, 0.9);
+      border: 2px solid rgba(0, 240, 255, 0.35);
+      border-radius: 10px;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.15s ease;
+    }
+
+    .server-card:hover {
+      border-color: #00ff66;
+      background: rgba(25, 38, 75, 0.95);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 255, 102, 0.2);
+    }
+
+    .server-card-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .server-card-title {
+      font-size: 11px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .server-card-meta {
+      font-size: 8px;
+      color: #a0aabf;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .server-badge-host {
+      color: #ffe600;
+    }
+
+    .server-badge-players {
+      color: #00ff66;
+    }
+
+    .btn-join-server {
+      background: #00ff66;
+      color: #000;
+      border: 2px solid #fff;
+      padding: 9px 18px;
+      font-size: 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 3px 0 #008833;
+      transition: all 0.1s ease;
+    }
+
+    .btn-join-server:hover {
+      background: #33ff88;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 0 #008833;
+    }
+
+    .btn-join-server:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #008833;
+    }
+
+    .servers-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 180px;
+      color: #a0aabf;
+      font-size: 9px;
+      text-align: center;
+      gap: 8px;
+    }
+
+    /* P2P Modals */
+    .p2p-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 200;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .p2p-modal-backdrop.active {
+      display: flex;
+    }
+
+    .p2p-modal-box {
+      background: rgba(12, 18, 38, 0.98);
+      border: 3px solid #00f0ff;
+      border-radius: 14px;
+      padding: 24px;
+      width: 480px;
+      max-width: 95vw;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .p2p-modal-title {
+      font-size: 12px;
+      color: #00f0ff;
+      letter-spacing: 1px;
+    }
+
+    .p2p-modal-desc {
+      font-size: 8px;
+      color: #a0aabf;
+      line-height: 1.4;
+    }
+
+    .p2p-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .p2p-form-group label {
+      font-size: 8px;
+      color: #ffe600;
+    }
+
+    .p2p-form-group input, .p2p-form-group select {
+      background: #090d1c;
+      border: 2px solid #00f0ff;
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: #00ff66;
+      font-size: 9px;
+      outline: none;
+      font-family: 'Press Start 2P', cursive;
+    }
+
+    .p2p-modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .btn-p2p-submit {
+      flex: 1;
+      background: #00ff66;
+      color: #000;
+      border: 2px solid #fff;
+      padding: 10px;
+      font-size: 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 3px 0 #008833;
+    }
+
+    .btn-p2p-cancel {
+      background: #ff0055;
+      color: #fff;
+      border: 2px solid #fff;
+      padding: 10px 16px;
+      font-size: 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #990033;
+    }
+
+    /* HUD Server Room Info */
+    .hud-server-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(12, 18, 38, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 8px;
+      color: #00f0ff;
+    }
+
+    .hud-server-info .server-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #00ff66;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #00ff66;
+    }
   </style>
 </head>
 <body>
@@ -991,6 +1919,15 @@
       </div>
 
       <button class="btn-start" id="start-btn">PRESIONA START</button>
+
+      <!-- Cuadro Top Victorias en Pantalla de Inicio -->
+      <div class="start-leaderboard-box">
+        <div class="start-leaderboard-header">
+          <span>🏆 TOP VICTORIAS (HALL OF FAME)</span>
+          <span style="color:#00ff66;font-size:7px;">GLOBAL P2P</span>
+        </div>
+        <div class="start-leaderboard-list" id="startLeaderboardList"></div>
+      </div>
 
       <div class="credits">2026 - FARMEAR AURA 3D &bull; MAPA PLANO OPTIMIZADO</div>
     </div>
@@ -1019,7 +1956,121 @@
 
         <div class="full-sprite" id="preview-full"></div>
 
-        <button class="btn-play" id="play-btn">ENTRAR AL MUNDO 3D</button>
+        <button class="btn-play" id="play-btn">BUSCAR SALAS / JUGAR ▶</button>
+      </div>
+    </div>
+
+    <!-- 2.5 PANTALLA NAVEGADOR DE SERVIDORES P2P -->
+    <div class="screen hidden" id="servers-screen">
+      <button class="btn-back" id="back-to-select">◄ CAMBIAR FIGHTER</button>
+      <button class="crt-toggle-menu" id="crtToggleServersBtn">📺 CRT: ON</button>
+
+      <div class="servers-wrapper">
+        <div class="servers-header">
+          <div class="servers-title-box">
+            <h2 class="servers-title">🌐 SALAS & SERVIDORES P2P</h2>
+            <p class="servers-sub">MULTIJUGADOR DIRECTO WEBRTC &bull; ULTRA BAJA LATENCIA</p>
+          </div>
+          <div class="p2p-my-status" id="p2pMyStatus">
+            <span class="p2p-dot"></span>
+            <span id="p2pMyStatusText">P2P: Conectando...</span>
+          </div>
+        </div>
+
+        <div class="servers-toolbar">
+          <button class="btn-server-action btn-server-create" id="btnOpenCreateServer">➕ CREAR SALA (HOST)</button>
+          <button class="btn-server-action btn-server-refresh" id="btnRefreshServers">🔄 ACTUALIZAR</button>
+          <button class="btn-server-action btn-server-direct" id="btnOpenDirectJoin">🔑 UNIRSE POR CÓDIGO</button>
+          <button class="btn-server-action btn-server-solo" id="btnPlaySolo">🎮 JUGAR SOLO (OFFLINE)</button>
+        </div>
+
+        <div class="servers-list-container" id="serversListContainer">
+          <div class="servers-empty-state">
+            <div style="font-size: 28px; margin-bottom: 8px;">📡</div>
+            <div style="color:#fff; font-size:11px;">Buscando servidores activos en la red...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Crear Servidor P2P -->
+    <div id="createServerModal" class="p2p-modal-backdrop">
+      <div class="p2p-modal-box">
+        <h3 class="p2p-modal-title">➕ CREAR NUEVO SERVIDOR P2P</h3>
+        <p class="p2p-modal-desc">Serás el Anfitrión (Host) y los demás jugadores se conectarán directamente a tu partida:</p>
+        
+        <div class="p2p-form-group">
+          <label>NOMBRE DE LA SALA / SERVIDOR:</label>
+          <input type="text" id="inputServerName" maxlength="24" placeholder="Ej: Arena de Aura Legendaria" />
+        </div>
+
+        <div class="p2p-form-group">
+          <label>LÍMITE MÁXIMO DE JUGADORES:</label>
+          <select id="selectMaxPlayers">
+            <option value="4">4 Jugadores</option>
+            <option value="8" selected>8 Jugadores</option>
+            <option value="12">12 Jugadores</option>
+            <option value="16">16 Jugadores</option>
+          </select>
+        </div>
+
+        <div class="p2p-modal-actions">
+          <button class="btn-p2p-submit" id="btnConfirmCreateServer">🚀 ABRIR SALA Y JUGAR</button>
+          <button class="btn-p2p-cancel" id="btnCancelCreateServer">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Unirse por Código Directo -->
+    <div id="directJoinModal" class="p2p-modal-backdrop">
+      <div class="p2p-modal-box">
+        <h3 class="p2p-modal-title">🔑 UNIRSE POR CÓDIGO P2P</h3>
+        <p class="p2p-modal-desc">Pega el ID o Código P2P del anfitrión para entrar a su sala privada:</p>
+        
+        <div class="p2p-form-group">
+          <label>CÓDIGO O PEER ID DEL HOST:</label>
+          <input type="text" id="inputDirectHostId" placeholder="fa_xxxxxxx..." />
+        </div>
+
+        <div class="p2p-modal-actions">
+          <button class="btn-p2p-submit" id="btnConfirmDirectJoin">⚡ CONECTARSE AHORA</button>
+          <button class="btn-p2p-cancel" id="btnCancelDirectJoin">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: Subir Personaje Personalizado (P2P) -->
+    <div id="customSkinModal" class="p2p-modal-backdrop">
+      <div class="p2p-modal-box">
+        <h3 class="p2p-modal-title">➕ SUBIR PERSONAJE PERSONALIZADO</h3>
+        <p class="p2p-modal-desc">Sube una imagen desde tu PC (PNG/JPG). Se optimizará y los demás jugadores la verán en 3D vía P2P:</p>
+        
+        <div class="p2p-form-group">
+          <label>NOMBRE DEL FIGHTER:</label>
+          <input type="text" id="inputCustomSkinName" maxlength="18" placeholder="Ej: Mi Skin Personalizada" />
+        </div>
+
+        <div class="p2p-form-group">
+          <label>IMAGEN DEL FIGHTER (PNG / JPG / GIF / WEBP):</label>
+          <input type="file" id="inputCustomSkinFile" accept="image/png, image/jpeg, image/webp, image/gif, .gif, .png, .jpg, .jpeg, .webp" style="display:none;" />
+          <button type="button" class="btn-server-action btn-server-direct" id="btnSelectSkinFile" style="justify-content:center;margin-top:4px;">
+            📁 SELECCIONAR ARCHIVO (PNG, JPG, GIF)
+          </button>
+        </div>
+
+        <!-- Preview del personaje seleccionado -->
+        <div id="customSkinPreviewBox" style="display:none;align-items:center;gap:12px;background:rgba(8,16,36,0.85);border:1px solid #00f0ff;border-radius:8px;padding:8px;">
+          <img id="customSkinPreviewImg" src="" alt="Preview" style="width:48px;height:48px;object-fit:contain;image-rendering:pixelated;border-radius:4px;border:1px solid #00ff66;background:#000;" />
+          <div style="display:flex;flex-direction:column;gap:3px;overflow:hidden;">
+            <span style="font-size:8px;color:#ffe600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="customSkinPreviewName">Imagen cargada</span>
+            <span style="font-size:7px;color:#00ff66;">✓ Lista para P2P</span>
+          </div>
+        </div>
+
+        <div class="p2p-modal-actions">
+          <button class="btn-p2p-submit" id="btnConfirmCustomSkin">⚡ CREAR Y SELECCIONAR</button>
+          <button class="btn-p2p-cancel" id="btnCancelCustomSkin">CANCELAR</button>
+        </div>
       </div>
     </div>
 
@@ -1030,12 +2081,7 @@
 
       <!-- Emote Video element (for Texture and Audio) -->
       <video id="emoteVideo" playsinline loop crossorigin="anonymous" style="display:none;"></video>
-
-      <!-- Emote active banner -->
-      <div id="emoteVideoOverlay">
-        <span>🕺 BAILANDO: <b id="currentEmoteName">DANCE</b></span>
-        <button id="stopEmoteBtn" style="background:#ff0055;border:none;color:#fff;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:8px;">PARAR (WASD)</button>
-      </div>
+      <div id="emoteVideoOverlay" style="display:none !important;"><b id="currentEmoteName" style="display:none;"></b><button id="stopEmoteBtn" style="display:none;"></button></div>
 
       <!-- HUD 3D -->
       <div class="game-hud">
@@ -1046,6 +2092,12 @@
               <div style="font-size: 9px; color: #fff;" id="hud-char-name">DEFAULT</div>
               <div style="font-size: 7px; color: #00ff66; margin-top: 2px;">FIGHTER 3D</div>
             </div>
+          </div>
+
+          <div class="hud-server-info" id="hudServerInfo">
+            <span class="server-dot"></span>
+            <span id="hudServerName">SALA P2P</span> &bull; 
+            <span id="hudServerPlayers" style="color:#ffe600;">1/8</span>
           </div>
 
           <div class="hud-aura-counter">
@@ -1060,12 +2112,15 @@
             <button class="hud-btn" id="exit3dBtn" style="border-color:#ff4444;color:#ff8888;">◄ SALIR</button>
           </div>
         </div>
+ 
+        <!-- Duelo Versus Centrado Arriba (Solo cuando hay rival en el círculo) -->
+        <div id="hudVsClashBanner" class="hud-vs-top-center"></div>
 
-        <!-- Tabla de Clasificación / Leaderboard a la Derecha -->
+        <!-- Tabla de Clasificación / Top Fighters a la Derecha -->
         <div class="hud-leaderboard" id="hudLeaderboard">
           <div class="hud-leaderboard-header">
-            <span>🏆 TOP AURA</span>
-            <span id="leaderboardCount" style="color: #ffe600; font-size: 7px;">1 PLAYER</span>
+            <span id="hudVersusTitle">🏆 TOP FIGHTERS</span>
+            <span id="leaderboardCount" style="color: #ffe600; font-size: 7px;">1 FIGHTER</span>
           </div>
           <div class="hud-leaderboard-list" id="leaderboardList"></div>
         </div>
@@ -1073,6 +2128,32 @@
         <!-- Efecto de Impacto Crítico en Pantalla -->
       <div class="crit-impact-flash" id="critImpactFlash"></div>
       <div class="crit-banner-popup" id="critBannerPopup">💥 ¡GOLPE CRÍTICO!</div>
+
+      <!-- Popup de Victoria en Duelo de Clics -->
+      <div class="vs-victory-popup" id="vsVictoryPopup">
+        <div class="vs-victory-badge">🏆 ¡VICTORIA EN DUELO! 🏆</div>
+        <div class="vs-victory-winner" id="vsVictoryWinner">JUGADOR 1 GANA</div>
+        <div class="vs-victory-bonus" id="vsVictoryBonus">+5,000 AURA BONUS ⚡</div>
+      </div>
+
+      <!-- Pantalla WASTED estilo GTA V para el que pierde el duelo -->
+      <div class="wasted-screen-overlay" id="wastedScreenOverlay">
+        <div class="wasted-letterbox-top"></div>
+        <div class="wasted-title-text">WASTED</div>
+        <div class="wasted-sub-text" id="wastedSubText">PERDISTE TODA TU AURA 💀</div>
+
+        <!-- Botones de Reaparición estilo Minecraft -->
+        <div class="wasted-actions-container">
+          <button class="wasted-btn wasted-btn-respawn" id="btnWastedRespawn">
+            🔄 REAPARECER (REVIVIR)
+          </button>
+          <button class="wasted-btn wasted-btn-menu" id="btnWastedMainMenu">
+            🚪 MENÚ PRINCIPAL
+          </button>
+        </div>
+
+        <div class="wasted-letterbox-bottom"></div>
+      </div>
 
       <!-- Controles Táctiles para Móviles / Celular -->
       <div class="mobile-controls-layer" id="mobileControlsLayer">
@@ -1273,7 +2354,106 @@
       unlocked: true
     };
 
-    let characters = [DEFAULT_SKIN];
+    /* ══ CUSTOM SKINS STORAGE (INDEXEDDB + LOCALSTORAGE FALLBACK) ══ */
+    const IDB_NAME = 'FarmearAuraCustomDB';
+    const IDB_STORE = 'custom_skins';
+    let customCharacters = [];
+
+    function openCustomSkinDB() {
+      return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        try {
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+              db.createObjectStore(IDB_STORE, { keyPath: 'name' });
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = () => resolve(null);
+        } catch (err) {
+          resolve(null);
+        }
+      });
+    }
+
+    async function loadCustomSkinsFromDB() {
+      try {
+        const db = await openCustomSkinDB();
+        if (!db) return null;
+        return new Promise((resolve) => {
+          const tx = db.transaction(IDB_STORE, 'readonly');
+          const store = tx.objectStore(IDB_STORE);
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve(null);
+        });
+      } catch (err) {
+        return null;
+      }
+    }
+
+    async function saveCustomSkinToDB(skin) {
+      try {
+        const db = await openCustomSkinDB();
+        if (db) {
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(skin);
+        }
+      } catch (e) {
+        console.warn('IndexedDB save error:', e);
+      }
+      try {
+        localStorage.setItem('fa_custom_skins', JSON.stringify(customCharacters));
+      } catch (e) {
+        console.warn('localStorage lleno, skin guardada en IndexedDB.');
+      }
+    }
+
+    async function deleteCustomSkinFromDB(skinName) {
+      try {
+        const db = await openCustomSkinDB();
+        if (db) {
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).delete(skinName);
+        }
+      } catch (e) {}
+      try {
+        localStorage.setItem('fa_custom_skins', JSON.stringify(customCharacters));
+      } catch (e) {}
+    }
+
+    // 1. Carga inicial rápida desde localStorage
+    try {
+      const savedCustom = localStorage.getItem('fa_custom_skins');
+      if (savedCustom) {
+        customCharacters = JSON.parse(savedCustom);
+        if (!Array.isArray(customCharacters)) customCharacters = [];
+      }
+    } catch (e) {
+      customCharacters = [];
+    }
+
+    let characters = [DEFAULT_SKIN, ...customCharacters];
+
+    // 2. Carga asíncrona completa desde IndexedDB (recupera GIFs pesados)
+    loadCustomSkinsFromDB().then(idbSkins => {
+      if (idbSkins && idbSkins.length > 0) {
+        const mergedMap = new Map();
+        idbSkins.forEach(s => mergedMap.set(s.name, s));
+        customCharacters.forEach(s => {
+          if (!mergedMap.has(s.name)) mergedMap.set(s.name, s);
+        });
+        customCharacters = Array.from(mergedMap.values());
+        characters = [
+          DEFAULT_SKIN,
+          ...customCharacters,
+          ...characters.filter(c => !c.isCustom && c.name !== DEFAULT_SKIN.name)
+        ];
+        populateGrid(characters);
+      }
+    });
     let rawEmotes = [];
     let selectedChar = characters[0];
     let auraCount = 0;
@@ -1282,16 +2462,58 @@
     /* ══ DOM ELEMENTS ══ */
     const startScreen = document.getElementById('start-screen');
     const selectScreen = document.getElementById('select-screen');
+    const serversScreen = document.getElementById('servers-screen');
     const gameContainer = document.getElementById('game-container');
     const firebaseStatusText = document.getElementById('firebase-status-text');
     const charsCountEl = document.getElementById('chars-count');
+    const p2pMyStatusText = document.getElementById('p2pMyStatusText');
 
     const startBtn = document.getElementById('start-btn');
     const backToStartBtn = document.getElementById('back-to-start');
     const playBtn = document.getElementById('play-btn');
+    const backToSelectBtn = document.getElementById('back-to-select');
+    const crtToggleServersBtn = document.getElementById('crtToggleServersBtn');
+
+    // Server screen toolbar buttons
+    const btnOpenCreateServer = document.getElementById('btnOpenCreateServer');
+    const btnRefreshServers = document.getElementById('btnRefreshServers');
+    const btnOpenDirectJoin = document.getElementById('btnOpenDirectJoin');
+    const btnPlaySolo = document.getElementById('btnPlaySolo');
+    const serversListContainer = document.getElementById('serversListContainer');
+
+    // Create server modal
+    const createServerModal = document.getElementById('createServerModal');
+    const inputServerName = document.getElementById('inputServerName');
+    const selectMaxPlayers = document.getElementById('selectMaxPlayers');
+    const btnConfirmCreateServer = document.getElementById('btnConfirmCreateServer');
+    const btnCancelCreateServer = document.getElementById('btnCancelCreateServer');
+
+    // Direct join modal
+    const directJoinModal = document.getElementById('directJoinModal');
+    const inputDirectHostId = document.getElementById('inputDirectHostId');
+    const btnConfirmDirectJoin = document.getElementById('btnConfirmDirectJoin');
+    const btnCancelDirectJoin = document.getElementById('btnCancelDirectJoin');
+
+    // Custom skin upload modal
+    const customSkinModal = document.getElementById('customSkinModal');
+    const inputCustomSkinName = document.getElementById('inputCustomSkinName');
+    const inputCustomSkinFile = document.getElementById('inputCustomSkinFile');
+    const btnSelectSkinFile = document.getElementById('btnSelectSkinFile');
+    const customSkinPreviewBox = document.getElementById('customSkinPreviewBox');
+    const customSkinPreviewImg = document.getElementById('customSkinPreviewImg');
+    const customSkinPreviewName = document.getElementById('customSkinPreviewName');
+    const btnConfirmCustomSkin = document.getElementById('btnConfirmCustomSkin');
+    const btnCancelCustomSkin = document.getElementById('btnCancelCustomSkin');
+    let pendingCustomSkinDataUrl = null;
+
     const exit3dBtn = document.getElementById('exit3dBtn');
     const camToggleBtn = document.getElementById('camToggleBtn');
     const openEmoteBtn = document.getElementById('openEmoteBtn');
+
+    // HUD server pill elements
+    const hudServerInfo = document.getElementById('hudServerInfo');
+    const hudServerName = document.getElementById('hudServerName');
+    const hudServerPlayers = document.getElementById('hudServerPlayers');
 
     const grid = document.getElementById('grid');
     const previewPortrait = document.getElementById('preview-portrait');
@@ -1743,7 +2965,6 @@
 
         card.addEventListener('mouseenter', () => {
           playSound('hover');
-          selectCharacter(char, card);
         });
 
         card.addEventListener('click', () => {
@@ -1752,12 +2973,183 @@
           selectCharacter(char, card);
         });
 
+        if (char.isCustom) {
+          card.style.position = 'relative';
+          const delBtn = document.createElement('button');
+          delBtn.innerHTML = '✕';
+          delBtn.title = 'Eliminar este Fighter';
+          delBtn.style.cssText = 'position:absolute;top:3px;right:3px;background:rgba(255,0,85,0.85);border:1px solid #fff;color:#fff;border-radius:50%;width:18px;height:18px;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;font-weight:bold;';
+          delBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm(`¿Eliminar al Fighter personalizado "${char.name}"?`)) {
+              customCharacters = customCharacters.filter(c => c.name !== char.name);
+              characters = characters.filter(c => c.name !== char.name);
+              await deleteCustomSkinFromDB(char.name);
+              populateGrid(characters);
+            }
+          });
+          card.appendChild(delBtn);
+        }
+
         grid.appendChild(card);
       });
 
+      // Tarjeta Especial [+] para Subir / Crear Personaje desde la PC al final
+      const addCard = document.createElement('div');
+      addCard.classList.add('character-card', 'add-character-card');
+      addCard.innerHTML = `
+        <div class="add-character-icon">➕</div>
+        <div class="character-card-name" style="color: #00ff66; font-size: 7px;">SUBIR SKIN</div>
+      `;
+      addCard.title = "Subir personaje personalizado desde tu PC";
+      addCard.addEventListener('mouseenter', () => {
+        playSound('hover');
+      });
+      addCard.addEventListener('click', () => {
+        playSound('select');
+        openCustomSkinModal();
+      });
+      grid.appendChild(addCard);
+
       if (!found && skinList.length > 0) {
-        selectCharacter(skinList[0], grid.children[0]);
+        const firstCard = grid.querySelector('.character-card:not(.add-character-card)');
+        selectCharacter(skinList[0], firstCard);
       }
+    }
+
+    /* ══ MODAL DE SUBIDA DE PERSONAJES PERSONALIZADOS ══ */
+    function openCustomSkinModal() {
+      if (!customSkinModal) return;
+      inputCustomSkinName.value = '';
+      inputCustomSkinFile.value = '';
+      pendingCustomSkinDataUrl = null;
+      if (customSkinPreviewBox) customSkinPreviewBox.style.display = 'none';
+      customSkinModal.classList.add('active');
+    }
+
+    function closeCustomSkinModal() {
+      if (!customSkinModal) return;
+      customSkinModal.classList.remove('active');
+      pendingCustomSkinDataUrl = null;
+    }
+
+    if (btnSelectSkinFile && inputCustomSkinFile) {
+      btnSelectSkinFile.addEventListener('click', () => {
+        inputCustomSkinFile.click();
+      });
+    }
+
+    if (inputCustomSkinFile) {
+      inputCustomSkinFile.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        try {
+          const dataUrl = await optimizeImageToDataURL(file, 384, 384);
+          pendingCustomSkinDataUrl = dataUrl;
+          if (customSkinPreviewImg) customSkinPreviewImg.src = dataUrl;
+          if (customSkinPreviewName) customSkinPreviewName.textContent = file.name.slice(0, 20);
+          if (customSkinPreviewBox) customSkinPreviewBox.style.display = 'flex';
+          if (!inputCustomSkinName.value.trim()) {
+            const rawName = file.name.split('.')[0];
+            inputCustomSkinName.value = rawName.charAt(0).toUpperCase() + rawName.slice(1, 16);
+          }
+          playSound('select');
+        } catch (err) {
+          console.warn('Error reading skin image:', err);
+          alert('No se pudo procesar la imagen seleccionada.');
+        }
+      });
+    }
+
+    function optimizeImageToDataURL(file, maxWidth = 384, maxHeight = 384) {
+      return new Promise((resolve, reject) => {
+        const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+        const reader = new FileReader();
+
+        if (isGif) {
+          // Si es un GIF, preservar la animación como data:image/gif para que se anime en el avatar y en la interfaz
+          reader.onload = (e) => {
+            resolve(e.target.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxWidth || h > maxHeight) {
+              const ratio = Math.min(maxWidth / w, maxHeight / h);
+              w = Math.round(w * ratio);
+              h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, w);
+            canvas.height = Math.max(1, h);
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (btnCancelCustomSkin) {
+      btnCancelCustomSkin.addEventListener('click', () => {
+        playSound('hover');
+        closeCustomSkinModal();
+      });
+    }
+
+    if (btnConfirmCustomSkin) {
+      btnConfirmCustomSkin.addEventListener('click', () => {
+        if (!pendingCustomSkinDataUrl) {
+          alert('Por favor selecciona una imagen desde tu PC.');
+          return;
+        }
+
+        const skinName = inputCustomSkinName.value.trim() || `Fighter ${characters.length + 1}`;
+        const newSkin = {
+          name: skinName,
+          image: pendingCustomSkinDataUrl,
+          icon: pendingCustomSkinDataUrl,
+          audio: '',
+          aura: '+99999',
+          unlocked: true,
+          isCustom: true
+        };
+
+        // Evitar duplicados por nombre
+        customCharacters = customCharacters.filter(c => c.name !== skinName);
+        customCharacters.unshift(newSkin);
+
+        // Guardar permanentemente en IndexedDB (soporta GIFs pesados)
+        saveCustomSkinToDB(newSkin);
+
+        // Insertar al inicio de la lista de personajes
+        characters = characters.filter(c => c.name !== skinName);
+        characters.unshift(newSkin);
+
+        playSound('select');
+        closeCustomSkinModal();
+
+        populateGrid(characters);
+
+        // Seleccionar automáticamente el personaje recién creado
+        const cards = grid.querySelectorAll('.character-card:not(.add-character-card)');
+        if (cards.length > 0) {
+          selectCharacter(newSkin, cards[0]);
+        }
+      });
     }
 
     /* ═══════════════════════════════════════════════
@@ -1797,29 +3189,371 @@
       );
     }
 
-    /* ══ MULTIJUGADOR REAL-TIME CON FIREBASE (Sincronizado) ══ */
-    // Generar ID único por pestaña/sesión para permitir multijugador entre pestañas
-    const myId = 'p_' + Math.random().toString(36).slice(2, 9) + '_' + Date.now().toString(36).slice(-4);
+    /* ══ SISTEMA MULTIJUGADOR P2P WEBRTC (PEERJS) & MATCHMAKING ══ */
+    let myPeerId = 'fa_' + Math.random().toString(36).slice(2, 8) + '_' + Date.now().toString(36).slice(-3);
+    let peer = null;
+    let isP2pReady = false;
+    let p2pMode = 'none'; // 'host', 'client', 'solo'
+    let hostConnections = {}; // Si soy Host: { [clientPeerId]: dataConnection }
+    let clientConnection = null; // Si soy Cliente: dataConnection con el Host
+    let currentRoomId = null;
+    let currentRoomInfo = { name: 'Sala P2P', hostName: 'Host', playersCount: 1, maxPlayers: 8 };
+    let roomHeartbeatInterval = null;
+    let pingCheckInterval = null;
+    let p2pPing = 0;
+
+    // Duelo de Clics / Tug-of-War Click Battle
+    let vsClashScore = 50; // 0 a 100 (50 = Centro)
+    let isClashActive = true;
+    let isWastedCamActive = false;
+    let wastedCamStartTime = 0;
+
     let fbDb = null;
     const otherPlayers = {};
     let lastPubTime = 0;
-    let ffaPlayersData = {};
-    let farmearPlayersData = {};
-    let ffaUnsub = null;
-    let farmearUnsub = null;
     let lastLocalAuraGain = null;
     let lastLocalCritHit = null;
 
-    function maybePublish(force = false) {
-      const now = Date.now();
-      if (!force && now - lastPubTime < 50) return;
-      lastPubTime = now;
-      publishPos();
+    /* ══ SISTEMA DE VICTORIAS & HALL OF FAME LEADERBOARD ══ */
+    let playerWins = parseInt(localStorage.getItem('fa_player_wins') || '0', 10);
+    let globalWinnersData = [];
+
+    function syncPlayerWinRecord(name, wins, skin) {
+      const myRecord = {
+        name: name || 'Fighter',
+        skin: skin || IMG_PLAYER,
+        wins: wins,
+        updatedAt: Date.now()
+      };
+
+      if (fbDb && myPeerId) {
+        const winRef = ref(fbDb, `fps/leaderboard_wins/${myPeerId}`);
+        set(winRef, myRecord).catch(() => {});
+      }
+      renderStartScreenLeaderboard();
     }
 
-    function publishPos() {
-      if (!fbDb || !is3dRunning) return;
-      const dataPayload = {
+    function renderStartScreenLeaderboard() {
+      const listEl = document.getElementById('startLeaderboardList');
+      if (!listEl) return;
+
+      const myName = (selectedChar?.name || 'Tú');
+      const mySkin = selectedChar?.image || IMG_PLAYER;
+
+      const recordsMap = new Map();
+
+      // Añadir mi récord local
+      recordsMap.set(myPeerId || 'local_me', {
+        id: myPeerId,
+        name: myName,
+        skin: mySkin,
+        wins: playerWins,
+        isMe: true
+      });
+
+      // Añadir récords globales de Firebase
+      if (Array.isArray(globalWinnersData)) {
+        globalWinnersData.forEach((rec, idx) => {
+          if (rec && rec.name) {
+            const recKey = rec.id || `fb_${rec.name}_${idx}`;
+            if (!recordsMap.has(recKey) || (recordsMap.get(recKey).wins < rec.wins)) {
+              recordsMap.set(recKey, {
+                id: recKey,
+                name: rec.name,
+                skin: rec.skin || IMG_PLAYER,
+                wins: rec.wins || 0,
+                isMe: (rec.id === myPeerId || rec.name === myName)
+              });
+            }
+          }
+        });
+      }
+
+      // Récords de Fighters legendarios para ranking inicial
+      const demoRecords = [
+        { name: 'Brad', skin: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/brad.png', wins: 12 },
+        { name: 'Kratos', skin: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/kratos.png', wins: 8 },
+        { name: 'Goku', skin: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/goku.png', wins: 5 }
+      ];
+
+      demoRecords.forEach(d => {
+        if (!recordsMap.has(d.name)) {
+          recordsMap.set(d.name, {
+            name: d.name,
+            skin: d.skin,
+            wins: d.wins,
+            isMe: false
+          });
+        }
+      });
+
+      const sorted = Array.from(recordsMap.values()).sort((a, b) => b.wins - a.wins);
+
+      listEl.innerHTML = sorted.slice(0, 8).map((p, idx) => {
+        const safeName = (p.name || 'Fighter').replace(/</g, '&lt;');
+        const rankClass = idx === 0 ? 'r-1' : (idx === 1 ? 'r-2' : (idx === 2 ? 'r-3' : ''));
+        const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
+        return `
+          <div class="start-leaderboard-item ${idx === 0 ? 'rank-top-1' : ''}">
+            <span class="start-leaderboard-rank ${rankClass}">${medal}</span>
+            <div class="start-leaderboard-user">
+              <div class="start-leaderboard-avatar" style="background-image:url('${resolveUrl(p.skin)}')"></div>
+              <span class="start-leaderboard-name">${safeName} ${p.isMe ? '<b style="color:#00ff66;">(Tú)</b>' : ''}</span>
+            </div>
+            <span class="start-leaderboard-wins">🏆 ${p.wins || 0} WINS</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function playWastedSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        // Sub-bass cinemático con caída de tono
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(115, now);
+        osc.frequency.exponentialRampToValueAtTime(24, now + 1.8);
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(380, now);
+        filter.frequency.linearRampToValueAtTime(65, now + 2.0);
+
+        gain.gain.setValueAtTime(0.9, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 2.2);
+
+        // Tono disonante siniestro estilo GTA V
+        const bellOsc = audioCtx.createOscillator();
+        const bellGain = audioCtx.createGain();
+        bellOsc.type = 'sine';
+        bellOsc.frequency.setValueAtTime(392, now);
+        bellOsc.frequency.linearRampToValueAtTime(375, now + 3.0);
+
+        bellGain.gain.setValueAtTime(0.35, now);
+        bellGain.gain.exponentialRampToValueAtTime(0.001, now + 3.2);
+
+        bellOsc.connect(bellGain);
+        bellGain.connect(audioCtx.destination);
+
+        bellOsc.start(now);
+        bellOsc.stop(now + 3.2);
+      } catch (e) {
+        console.warn('Wasted audio error:', e);
+      }
+    }
+
+    function handleClashVictory(winnerName, isLocalWinner) {
+      isClashActive = false;
+
+      // Detener cualquier emote/baile de inmediato
+      stopEmoteIn3D();
+
+      // Deshabilitar y bloquear el botón de farmeo durante la pantalla de victoria/wasted
+      if (hudFarmOrb) {
+        hudFarmOrb.classList.add('disabled');
+      }
+
+      const popup = document.getElementById('vsVictoryPopup');
+      const winnerEl = document.getElementById('vsVictoryWinner');
+      const bonusEl = document.getElementById('vsVictoryBonus');
+      const wastedOverlay = document.getElementById('wastedScreenOverlay');
+      const wastedSubText = document.getElementById('wastedSubText');
+
+      if (isLocalWinner) {
+        // 🏆 EXPERIENCIA DEL GANADOR
+        isWastedCamActive = false;
+        playSound('select');
+        triggerCameraShake(0.5, 600);
+        triggerCritImpactVisual(`🏆 ¡VICTORIA! 🏆`);
+
+        if (popup && winnerEl) {
+          winnerEl.textContent = `${winnerName.toUpperCase()} GANA EL DUELO`;
+          if (bonusEl) bonusEl.textContent = '+5,000 AURA BONUS ⚡';
+          popup.classList.remove('active');
+          void popup.offsetWidth;
+          popup.classList.add('active');
+        }
+
+        // Anillos gigantes de aura de celebración
+        for (let i = 0; i < 5; i++) {
+          setTimeout(() => {
+            spawnBigAuraRing(playerPos.x, playerPos.z);
+          }, i * 250);
+        }
+
+        const winBonus = 5000;
+        auraCount += winBonus;
+        playerWins++;
+        localStorage.setItem('fa_player_wins', playerWins.toString());
+        syncPlayerWinRecord(selectedChar?.name || 'Tú', playerWins, selectedChar?.image || IMG_PLAYER);
+
+        hudAuraVal.textContent = auraCount.toLocaleString();
+        const winText = `🏆 +${winBonus} AURA POR VICTORIA! ⚡`;
+        lastLocalAuraGain = { text: winText, time: Date.now() };
+        spawnFloatingAura(winText);
+        spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, winText, '#ffe600');
+        maybePublish(true);
+
+        // Ocultar popup del ganador y rehabilitar farmeo tras 3.5s de celebración
+        setTimeout(() => {
+          if (popup) popup.classList.remove('active');
+          if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+          isClashActive = true;
+          vsClashScore = 50;
+        }, 3500);
+      } else {
+        // 💀 EXPERIENCIA DEL PERDEDOR (PANTALLA WASTED GTA V / BOTONES ESTILO MINECRAFT)
+        isWastedCamActive = true;
+        wastedCamStartTime = performance.now();
+        playWastedSound();
+        triggerCameraShake(0.75, 1200);
+
+        // Liberar el puntero del ratón para permitir interactuar con los botones de revivir o salir
+        try { document.exitPointerLock(); } catch (e) {}
+
+        // Tumbar al personaje al suelo (Knockdown / Ragdoll)
+        if (playerBillboardMesh) {
+          playerBillboardMesh.rotation.z = Math.PI / 2;
+          playerBillboardMesh.position.y = 0.45;
+        }
+
+        if (wastedOverlay) {
+          if (wastedSubText) {
+            wastedSubText.textContent = 'PERDISTE TODA TU AURA 💀';
+          }
+          wastedOverlay.classList.remove('active');
+          void wastedOverlay.offsetWidth;
+          wastedOverlay.classList.add('active');
+        }
+        // El jugador NO revive automáticamente; elige "REAPARECER" o "MENÚ PRINCIPAL".
+      }
+    }
+
+    function respawnPlayerFromWasted() {
+      const wastedOverlay = document.getElementById('wastedScreenOverlay');
+      const popup = document.getElementById('vsVictoryPopup');
+
+      if (wastedOverlay) wastedOverlay.classList.remove('active');
+      if (popup) popup.classList.remove('active');
+
+      isWastedCamActive = false;
+      isClashActive = true;
+      vsClashScore = 50;
+
+      // Restaurar posición y postura normal del personaje
+      if (playerBillboardMesh) {
+        playerBillboardMesh.rotation.z = 0;
+        playerBillboardMesh.position.y = 1.6;
+      }
+
+      // Rehabilitar el botón de farmeo
+      if (hudFarmOrb) {
+        hudFarmOrb.classList.remove('disabled');
+      }
+
+      playSound('select');
+      spawnBigAuraRing(playerPos.x, playerPos.z);
+      spawnFloatingAura('⚡ ¡HAS REAPARECIDO!');
+      spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, '⚡ REAPARECIDO', '#00ff66');
+
+      // Notificar reinicio de duelo al multijugador P2P
+      if (p2pMode === 'host') {
+        for (const pid in hostConnections) {
+          if (hostConnections[pid]?.open) {
+            hostConnections[pid].send({ type: 'clash_reset', score: 50 });
+          }
+        }
+      } else if (p2pMode === 'client') {
+        if (clientConnection && clientConnection.open) {
+          clientConnection.send({ type: 'clash_respawn' });
+        }
+      }
+    }
+
+    const btnWastedRespawn = document.getElementById('btnWastedRespawn');
+    const btnWastedMainMenu = document.getElementById('btnWastedMainMenu');
+
+    if (btnWastedRespawn) {
+      btnWastedRespawn.addEventListener('click', respawnPlayerFromWasted);
+    }
+    if (btnWastedMainMenu) {
+      btnWastedMainMenu.addEventListener('click', () => {
+        const wastedOverlay = document.getElementById('wastedScreenOverlay');
+        if (wastedOverlay) wastedOverlay.classList.remove('active');
+        isWastedCamActive = false;
+        leaveCurrentP2PServer();
+      });
+    }
+
+    function updateP2PStatus(text, isOnline = true) {
+      if (p2pMyStatusText) {
+        p2pMyStatusText.textContent = text;
+        p2pMyStatusText.style.color = isOnline ? '#00ff66' : '#ffaa00';
+      }
+    }
+
+    function initPeerJS() {
+      if (peer) return;
+      try {
+        peer = new Peer(myPeerId, {
+          debug: 1,
+          config: {
+            iceServers: [
+              { urls: 'stun:stun.l.google.com:19302' },
+              { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+          }
+        });
+
+        peer.on('open', (id) => {
+          myPeerId = id;
+          isP2pReady = true;
+          updateP2PStatus(`P2P: Conectado (${id.slice(0, 10)}...)`, true);
+          console.log('PeerJS listo con ID:', id);
+        });
+
+        peer.on('connection', (conn) => {
+          if (p2pMode === 'host') {
+            handleIncomingHostConnection(conn);
+          } else {
+            // Si no soy host pero alguien intenta conectarse, rechazar amablemente
+            conn.on('open', () => {
+              conn.send({ type: 'error', message: 'Este jugador no es host de una partida activa.' });
+              setTimeout(() => conn.close(), 500);
+            });
+          }
+        });
+
+        peer.on('error', (err) => {
+          console.warn('PeerJS error:', err);
+          updateP2PStatus(`P2P: ${err.type || 'Error'}`, false);
+        });
+
+        peer.on('disconnected', () => {
+          isP2pReady = false;
+          updateP2PStatus('P2P: Reconectando...', false);
+          try { peer.reconnect(); } catch (e) {}
+        });
+      } catch (e) {
+        console.error('Error inicializando PeerJS:', e);
+        updateP2PStatus('P2P: Offline', false);
+      }
+    }
+
+    function getLocalPlayerData() {
+      return {
         name: selectedChar.name || 'Fighter',
         skin: selectedChar.image || IMG_PLAYER,
         x: +playerPos.x.toFixed(3),
@@ -1829,6 +3563,7 @@
         hp: 100,
         dead: false,
         aura: auraCount,
+        wins: playerWins,
         holdingSpeaker: !!isSpeakerEquipped,
         hasAuraRing: !!(playerAuraRingMesh && playerAuraRingMesh.visible),
         lastAuraGain: lastLocalAuraGain,
@@ -1842,9 +3577,42 @@
         emoteVideo: isEmotePlaying ? (emoteVideo.src || null) : null,
         t: Date.now()
       };
+    }
 
-      set(ref(fbDb, `fps/players_ffa/${myId}`), dataPayload).catch(() => {});
-      set(ref(fbDb, `fps/players_farmear/${myId}`), dataPayload).catch(() => {});
+    function maybePublish(force = false) {
+      const now = Date.now();
+      if (!force && now - lastPubTime < 45) return;
+      lastPubTime = now;
+      publishPos();
+    }
+
+    function publishPos() {
+      if (!is3dRunning) return;
+      const dataPayload = getLocalPlayerData();
+
+      if (p2pMode === 'host') {
+        // Enviar a todos los clientes conectados directamente por WebRTC DataChannel
+        const packet = {
+          type: 'update',
+          id: myPeerId,
+          data: dataPayload
+        };
+        for (const pid in hostConnections) {
+          const conn = hostConnections[pid];
+          if (conn && conn.open) {
+            conn.send(packet);
+          }
+        }
+      } else if (p2pMode === 'client') {
+        // Enviar al Host directamente
+        if (clientConnection && clientConnection.open) {
+          clientConnection.send({
+            type: 'update',
+            id: myPeerId,
+            data: dataPayload
+          });
+        }
+      }
     }
 
     function makeNameplateTex(name, aura) {
@@ -2215,6 +3983,7 @@
 
           const formatted = [
             DEFAULT_SKIN,
+            ...customCharacters,
             ...rawSkins.map((s, idx) => ({
               name: s.name || `Fighter ${idx + 1}`,
               image: s.image || IMG_PLAYER,
@@ -2238,13 +4007,14 @@
           populateGrid(characters);
           firebaseStatusText.textContent = `✓ Firebase Online (${characters.length} Fighters)`;
         } else {
-          characters = [DEFAULT_SKIN];
+          characters = [DEFAULT_SKIN, ...customCharacters];
           populateGrid(characters);
           firebaseStatusText.textContent = "✓ Firebase conectado";
         }
       }, () => {
         firebaseStatusText.textContent = "Modo Offline (Base)";
-        populateGrid([DEFAULT_SKIN]);
+        characters = [DEFAULT_SKIN, ...customCharacters];
+        populateGrid(characters);
       });
 
       const emotesRef = ref(fbDb, 'fps/emotes');
@@ -2256,18 +4026,32 @@
         }
       });
 
+      const winBoardRef = ref(fbDb, 'fps/leaderboard_wins');
+      onValue(winBoardRef, (snap) => {
+        if (snap.exists()) {
+          const val = snap.val() || {};
+          globalWinnersData = Object.values(val);
+          renderStartScreenLeaderboard();
+        }
+      });
+
+      renderStartScreenLeaderboard();
+
     } catch (e) {
       firebaseStatusText.textContent = "Modo Offline";
       populateGrid([DEFAULT_SKIN]);
+      renderStartScreenLeaderboard();
     }
 
     /* ══ EMOTE SYSTEM LOGIC ══ */
     function getEmoteVideoForCharacter(emote, charName) {
+      if (!emote) return '';
       if (emote.characterVideos && emote.characterVideos[charName]) {
         return emote.characterVideos[charName];
       }
-      if (charName === 'Default' && emote.video) return emote.video;
-      if (emote.video) return emote.video;
+      if (charName === 'Default' && emote.video) {
+        return emote.video;
+      }
       return '';
     }
 
@@ -2297,8 +4081,13 @@
         card.appendChild(nameDiv);
 
         card.addEventListener('click', () => {
-          playEmoteIn3D(emote);
-          emoteWheelModal.classList.remove('active');
+          const vidUrl = getEmoteVideoForCharacter(emote, selectedChar.name);
+          if (vidUrl) {
+            playEmoteIn3D(emote);
+            emoteWheelModal.classList.remove('active');
+          } else {
+            spawnFloatingAura('❌ Emote no disponible para este Fighter');
+          }
         });
 
         emotesGridContainer.appendChild(card);
@@ -2395,17 +4184,20 @@
       const crtOverlay = document.getElementById('crtOverlay');
       const menuBtn = document.getElementById('crtToggleMenuBtn');
       const selectBtn = document.getElementById('crtToggleSelectBtn');
+      const serversBtn = document.getElementById('crtToggleServersBtn');
       const hudBtn = document.getElementById('crtToggleHudBtn');
 
       if (crtEnabled) {
         crtOverlay.classList.remove('disabled');
         if (menuBtn) { menuBtn.textContent = '📺 CRT: ON'; menuBtn.style.color = '#00ff66'; }
         if (selectBtn) { selectBtn.textContent = '📺 CRT: ON'; selectBtn.style.color = '#00ff66'; }
+        if (serversBtn) { serversBtn.textContent = '📺 CRT: ON'; serversBtn.style.color = '#00ff66'; }
         if (hudBtn) { hudBtn.textContent = '📺 CRT: ON'; hudBtn.style.color = '#00ff66'; }
       } else {
         crtOverlay.classList.add('disabled');
         if (menuBtn) { menuBtn.textContent = '📺 CRT: OFF'; menuBtn.style.color = '#ff6666'; }
         if (selectBtn) { selectBtn.textContent = '📺 CRT: OFF'; selectBtn.style.color = '#ff6666'; }
+        if (serversBtn) { serversBtn.textContent = '📺 CRT: OFF'; serversBtn.style.color = '#ff6666'; }
         if (hudBtn) { hudBtn.textContent = '📺 CRT: OFF'; hudBtn.style.color = '#ff6666'; }
       }
       localStorage.setItem('farmear_aura_crt', crtEnabled ? 'true' : 'false');
@@ -2423,15 +4215,543 @@
 
     if (crtToggleMenuBtn) crtToggleMenuBtn.addEventListener('click', toggleCrt);
     if (crtToggleSelectBtn) crtToggleSelectBtn.addEventListener('click', toggleCrt);
+    if (crtToggleServersBtn) crtToggleServersBtn.addEventListener('click', toggleCrt);
     if (crtToggleHudBtn) crtToggleHudBtn.addEventListener('click', toggleCrt);
 
     updateCrtDisplay();
 
-    /* ══ MENU TRANSITIONS ══ */
+    /* ══ P2P HOST & CLIENT NETWORKING HANDLERS ══ */
+
+    function handleIncomingHostConnection(conn) {
+      conn.on('open', () => {
+        const clientCount = Object.keys(hostConnections).length;
+        if (clientCount + 1 >= (currentRoomInfo.maxPlayers || 8)) {
+          conn.send({ type: 'error', message: 'La sala está llena.' });
+          setTimeout(() => conn.close(), 500);
+          return;
+        }
+
+        hostConnections[conn.peer] = conn;
+
+        // Construir lista de todos los jugadores presentes
+        const playersSnapshot = {};
+        for (const pid in otherPlayers) {
+          if (otherPlayers[pid] && otherPlayers[pid].data) {
+            playersSnapshot[pid] = otherPlayers[pid].data;
+          }
+        }
+        playersSnapshot[myPeerId] = getLocalPlayerData();
+
+        // Enviar bienvenida con el estado de la sala
+        conn.send({
+          type: 'welcome',
+          roomInfo: currentRoomInfo,
+          hostPeerId: myPeerId,
+          clashScore: vsClashScore,
+          players: playersSnapshot
+        });
+
+        updateRoomPlayerCount();
+      });
+
+      conn.on('data', (packet) => {
+        if (!packet || typeof packet !== 'object') return;
+
+        if (packet.type === 'update') {
+          const pData = packet.data;
+          if (pData) {
+            if (!otherPlayers[conn.peer]) {
+              spawnOtherPlayer(conn.peer, pData);
+            } else {
+              updateOtherPlayerData(conn.peer, pData);
+            }
+
+            // Retransmitir (Relay) a todos los demás clientes conectados
+            for (const otherPid in hostConnections) {
+              if (otherPid !== conn.peer) {
+                const c = hostConnections[otherPid];
+                if (c && c.open) {
+                  c.send({
+                    type: 'update',
+                    id: conn.peer,
+                    data: pData
+                  });
+                }
+              }
+            }
+          }
+        } else if (packet.type === 'clash_push') {
+          if (!isClashActive) return;
+          const push = packet.push || 2.8;
+          // El cliente empuja la barra hacia la izquierda (0%)
+          vsClashScore = Math.max(0, vsClashScore - push);
+
+          if (vsClashScore <= 0) {
+            const wName = packet.senderName || 'Rival';
+            handleClashVictory(wName, false);
+            for (const pid in hostConnections) {
+              if (hostConnections[pid]?.open) {
+                hostConnections[pid].send({
+                  type: 'clash_win',
+                  winnerName: wName,
+                  winnerId: conn.peer
+                });
+              }
+            }
+          } else {
+            for (const pid in hostConnections) {
+              if (hostConnections[pid]?.open) {
+                hostConnections[pid].send({
+                  type: 'clash_update',
+                  score: vsClashScore
+                });
+              }
+            }
+          }
+        } else if (packet.type === 'clash_respawn') {
+          vsClashScore = 50;
+          isClashActive = true;
+          const popup = document.getElementById('vsVictoryPopup');
+          if (popup) popup.classList.remove('active');
+          if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+
+          for (const pid in hostConnections) {
+            if (hostConnections[pid]?.open) {
+              hostConnections[pid].send({
+                type: 'clash_reset',
+                score: 50
+              });
+            }
+          }
+        } else if (packet.type === 'ping') {
+          conn.send({ type: 'pong', time: packet.time });
+        }
+      });
+
+      conn.on('close', () => {
+        delete hostConnections[conn.peer];
+        removeOtherPlayer(conn.peer);
+
+        // Si el rival se va, rehabilitar el botón de farmeo y reiniciar duelo
+        if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+        isClashActive = true;
+        vsClashScore = 50;
+        const popup = document.getElementById('vsVictoryPopup');
+        if (popup) popup.classList.remove('active');
+
+        // Notificar a todos los demás clientes
+        for (const otherPid in hostConnections) {
+          const c = hostConnections[otherPid];
+          if (c && c.open) {
+            c.send({ type: 'player_leave', id: conn.peer });
+          }
+        }
+        updateRoomPlayerCount();
+      });
+
+      conn.on('error', (err) => {
+        console.warn('Host client connection error:', err);
+        delete hostConnections[conn.peer];
+        removeOtherPlayer(conn.peer);
+        updateRoomPlayerCount();
+      });
+    }
+
+    function createP2PServer(serverName, maxPlayers) {
+      if (!isP2pReady || !peer || !peer.id) {
+        initPeerJS();
+        alert('Conectando a la red P2P... Intenta de nuevo en 2 segundos.');
+        return;
+      }
+
+      p2pMode = 'host';
+      currentRoomId = 'room_' + Math.random().toString(36).slice(2, 9);
+      currentRoomInfo = {
+        id: currentRoomId,
+        name: serverName.trim() || `${selectedChar.name}'s Arena`,
+        hostPeerId: peer.id,
+        hostName: selectedChar.name || 'Fighter',
+        hostSkin: selectedChar.image || IMG_PLAYER,
+        playersCount: 1,
+        maxPlayers: parseInt(maxPlayers) || 8,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+
+      // Registrar sala en Firebase únicamente para descubrimiento (sin tráfico de juego)
+      if (fbDb) {
+        const roomRef = ref(fbDb, `fps/p2p_servers/${currentRoomId}`);
+        set(roomRef, currentRoomInfo).catch(() => {});
+        onDisconnect(roomRef).remove().catch(() => {});
+
+        if (roomHeartbeatInterval) clearInterval(roomHeartbeatInterval);
+        roomHeartbeatInterval = setInterval(() => {
+          if (p2pMode === 'host' && is3dRunning) {
+            update(ref(fbDb, `fps/p2p_servers/${currentRoomId}`), {
+              updatedAt: Date.now(),
+              playersCount: Object.keys(hostConnections).length + 1
+            }).catch(() => {});
+          }
+        }, 6000);
+      }
+
+      launch3DGameUI();
+      updateHudServerInfo();
+      spawnFloatingAura('👑 ¡ERES EL ANFITRIÓN P2P!');
+    }
+
+    function updateRoomPlayerCount() {
+      const count = Object.keys(hostConnections).length + 1;
+      currentRoomInfo.playersCount = count;
+      updateHudServerInfo();
+
+      if (fbDb && currentRoomId && p2pMode === 'host') {
+        update(ref(fbDb, `fps/p2p_servers/${currentRoomId}`), {
+          playersCount: count,
+          updatedAt: Date.now()
+        }).catch(() => {});
+      }
+    }
+
+    function joinP2PServer(hostPeerId, serverName = 'Sala P2P') {
+      if (!isP2pReady || !peer || !peer.id) {
+        initPeerJS();
+        alert('Conectando a la red P2P... Intenta de nuevo en 2 segundos.');
+        return;
+      }
+
+      if (hostPeerId === peer.id) {
+        alert('No puedes unirte a tu propia sala como cliente. Ya eres el Host.');
+        return;
+      }
+
+      p2pMode = 'client';
+      currentRoomInfo = {
+        name: serverName || 'Sala P2P',
+        hostName: 'Host',
+        playersCount: 2,
+        maxPlayers: 8
+      };
+
+      updateP2PStatus('P2P: Conectando al Host...', false);
+
+      // Conexión WebRTC directa de ultra-baja latencia
+      clientConnection = peer.connect(hostPeerId, { reliable: false });
+
+      const joinTimeout = setTimeout(() => {
+        if (clientConnection && !clientConnection.open) {
+          alert('No se pudo conectar al servidor P2P. El anfitrión podría haberse desconectado.');
+          leaveCurrentP2PServer();
+        }
+      }, 9000);
+
+      clientConnection.on('open', () => {
+        clearTimeout(joinTimeout);
+        updateP2PStatus('🟢 P2P Conectado al Host', true);
+        console.log('Conexión P2P exitosa con host:', hostPeerId);
+
+        // Enviar estado inicial del jugador local
+        clientConnection.send({
+          type: 'update',
+          id: myPeerId,
+          data: getLocalPlayerData()
+        });
+
+        launch3DGameUI();
+        updateHudServerInfo();
+        spawnFloatingAura('⚡ ¡CONECTADO A LA SALA P2P!');
+
+        // Ping periódico para medir latencia
+        if (pingCheckInterval) clearInterval(pingCheckInterval);
+        pingCheckInterval = setInterval(() => {
+          if (clientConnection && clientConnection.open) {
+            clientConnection.send({ type: 'ping', time: Date.now() });
+          }
+        }, 4000);
+      });
+
+      clientConnection.on('data', (packet) => {
+        if (!packet || typeof packet !== 'object') return;
+
+        if (packet.type === 'welcome') {
+          currentRoomInfo = packet.roomInfo || currentRoomInfo;
+          if (packet.clashScore !== undefined) {
+            vsClashScore = packet.clashScore;
+          }
+          updateHudServerInfo();
+          if (packet.players) {
+            for (const pid in packet.players) {
+              if (pid !== myPeerId && packet.players[pid]) {
+                if (!otherPlayers[pid]) {
+                  spawnOtherPlayer(pid, packet.players[pid]);
+                } else {
+                  updateOtherPlayerData(pid, packet.players[pid]);
+                }
+              }
+            }
+          }
+        } else if (packet.type === 'update') {
+          const pid = packet.id;
+          const pData = packet.data;
+          if (pid && pData && pid !== myPeerId) {
+            if (!otherPlayers[pid]) {
+              spawnOtherPlayer(pid, pData);
+            } else {
+              updateOtherPlayerData(pid, pData);
+            }
+          }
+        } else if (packet.type === 'clash_update') {
+          if (packet.score !== undefined) {
+            vsClashScore = packet.score;
+          }
+        } else if (packet.type === 'clash_win') {
+          const isMe = (packet.winnerId === myPeerId);
+          handleClashVictory(packet.winnerName || 'Rival', isMe);
+        } else if (packet.type === 'clash_reset') {
+          vsClashScore = packet.score !== undefined ? packet.score : 50;
+          isClashActive = true;
+          const popup = document.getElementById('vsVictoryPopup');
+          if (popup) popup.classList.remove('active');
+          if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+        } else if (packet.type === 'player_leave') {
+          if (packet.id) {
+            removeOtherPlayer(packet.id);
+          }
+          if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+          isClashActive = true;
+          vsClashScore = 50;
+          const popup = document.getElementById('vsVictoryPopup');
+          if (popup) popup.classList.remove('active');
+        } else if (packet.type === 'pong') {
+          p2pPing = Math.max(1, Date.now() - (packet.time || Date.now()));
+          updateHudServerInfo();
+        } else if (packet.type === 'error') {
+          alert(packet.message || 'Error en la conexión con la sala.');
+          leaveCurrentP2PServer();
+        }
+      });
+
+      clientConnection.on('close', () => {
+        if (is3dRunning) {
+          alert('El anfitrión ha cerrado el servidor o se perdió la conexión P2P.');
+          leaveCurrentP2PServer();
+        }
+      });
+
+      clientConnection.on('error', (err) => {
+        console.warn('Error de conexión P2P del cliente:', err);
+        if (is3dRunning) {
+          alert('Error en la conexión con el servidor P2P.');
+          leaveCurrentP2PServer();
+        }
+      });
+    }
+
+    function playSoloGame() {
+      p2pMode = 'solo';
+      currentRoomInfo = {
+        name: 'Modo Práctica Solo',
+        hostName: selectedChar.name,
+        playersCount: 1,
+        maxPlayers: 1
+      };
+      launch3DGameUI();
+      updateHudServerInfo();
+      spawnFloatingAura('🎮 MODO OFFLINE / SOLO');
+    }
+
+    function updateHudServerInfo() {
+      if (!hudServerInfo) return;
+      if (p2pMode === 'host') {
+        hudServerName.textContent = `👑 HOST: ${(currentRoomInfo.name || 'Mi Sala').slice(0, 16)}`;
+        hudServerPlayers.textContent = `${Object.keys(hostConnections).length + 1}/${currentRoomInfo.maxPlayers || 8}`;
+        hudServerPlayers.style.color = '#00ff66';
+      } else if (p2pMode === 'client') {
+        const pingStr = p2pPing > 0 ? ` (${p2pPing}ms)` : '';
+        hudServerName.textContent = `🌐 ${(currentRoomInfo.name || 'Sala P2P').slice(0, 14)}${pingStr}`;
+        hudServerPlayers.textContent = `${Object.keys(otherPlayers).length + 1}/${currentRoomInfo.maxPlayers || 8}`;
+        hudServerPlayers.style.color = p2pPing < 70 ? '#00ff66' : '#ffe600';
+      } else {
+        hudServerName.textContent = `🎮 MODO SOLO`;
+        hudServerPlayers.textContent = `1/1`;
+        hudServerPlayers.style.color = '#00f0ff';
+      }
+    }
+
+    function launch3DGameUI() {
+      serversScreen.classList.add('hidden');
+      gameContainer.style.display = 'block';
+
+      hudCharName.textContent = selectedChar.name;
+      renderAvatar(selectedChar, hudCharAvatar);
+
+      start3DGame();
+    }
+
+    function leaveCurrentP2PServer() {
+      // Limpiar y resetear estados de muerte y cinemática
+      isWastedCamActive = false;
+      isClashActive = true;
+      vsClashScore = 50;
+
+      const wastedOverlay = document.getElementById('wastedScreenOverlay');
+      const popup = document.getElementById('vsVictoryPopup');
+      if (wastedOverlay) wastedOverlay.classList.remove('active');
+      if (popup) popup.classList.remove('active');
+
+      if (hudFarmOrb) {
+        hudFarmOrb.classList.remove('disabled');
+      }
+
+      if (playerBillboardMesh) {
+        playerBillboardMesh.rotation.z = 0;
+        playerBillboardMesh.position.y = 1.6;
+      }
+
+      playerPos.set(0, 0, 10);
+      playerVel.set(0, 0, 0);
+      isGrounded = true;
+
+      if (p2pMode === 'host') {
+        if (roomHeartbeatInterval) {
+          clearInterval(roomHeartbeatInterval);
+          roomHeartbeatInterval = null;
+        }
+        if (fbDb && currentRoomId) {
+          remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => {});
+        }
+        for (const pid in hostConnections) {
+          try {
+            hostConnections[pid].send({ type: 'error', message: 'El anfitrión ha cerrado el servidor.' });
+            hostConnections[pid].close();
+          } catch (e) {}
+        }
+        hostConnections = {};
+      } else if (p2pMode === 'client') {
+        if (pingCheckInterval) {
+          clearInterval(pingCheckInterval);
+          pingCheckInterval = null;
+        }
+        if (clientConnection) {
+          try { clientConnection.close(); } catch (e) {}
+          clientConnection = null;
+        }
+      }
+
+      p2pMode = 'none';
+      currentRoomId = null;
+      cleanupAllOtherPlayers();
+
+      auraCount = 0;
+      if (hudAuraVal) hudAuraVal.textContent = '0';
+      lastLocalAuraGain = null;
+      lastLocalCritHit = null;
+
+      stopEmoteIn3D();
+      stop3DGame();
+      document.exitPointerLock();
+      gameContainer.style.display = 'none';
+      serversScreen.classList.remove('hidden');
+      listenForP2PServers();
+    }
+
+    /* ══ LISTENER DE SALAS P2P DESDE FIREBASE ══ */
+    let serversUnsub = null;
+    function listenForP2PServers() {
+      if (!fbDb) {
+        serversListContainer.innerHTML = `
+          <div class="servers-empty-state">
+            <div style="font-size: 28px; margin-bottom: 8px;">📡</div>
+            <div style="color: #ff6666; font-size: 11px; margin-bottom: 4px;">FIREBASE DESCONECTADO</div>
+            <div>Puedes crear una sala como Host o Jugar Solo en Modo Offline.</div>
+          </div>
+        `;
+        return;
+      }
+
+      if (serversUnsub) serversUnsub();
+
+      const serversRef = ref(fbDb, 'fps/p2p_servers');
+      serversUnsub = onValue(serversRef, (snap) => {
+        if (!snap.exists()) {
+          serversListContainer.innerHTML = `
+            <div class="servers-empty-state">
+              <div style="font-size: 28px; margin-bottom: 8px;">🏝️</div>
+              <div style="color: #fff; font-size: 11px; margin-bottom: 4px;">NO HAY SERVIDORES ACTIVOS EN ESTE MOMENTO</div>
+              <div>¡Crea una sala nueva con el botón de arriba y sé el Anfitrión!</div>
+            </div>
+          `;
+          return;
+        }
+
+        const data = snap.val() || {};
+        const now = Date.now();
+        // Filtrar salas activas (actualizadas hace menos de 30 segundos)
+        const activeRooms = Object.values(data).filter(r => r && r.hostPeerId && (now - (r.updatedAt || 0) < 30000));
+
+        if (activeRooms.length === 0) {
+          serversListContainer.innerHTML = `
+            <div class="servers-empty-state">
+              <div style="font-size: 28px; margin-bottom: 8px;">🏝️</div>
+              <div style="color: #fff; font-size: 11px; margin-bottom: 4px;">NO HAY SERVIDORES ACTIVOS EN ESTE MOMENTO</div>
+              <div>¡Crea una sala nueva con el botón de arriba y sé el Anfitrión!</div>
+            </div>
+          `;
+          return;
+        }
+
+        serversListContainer.innerHTML = activeRooms.map(room => {
+          const isMyOwn = (room.hostPeerId === myPeerId);
+          const isFull = (room.playersCount || 1) >= (room.maxPlayers || 8);
+          const safeName = (room.name || 'Sala de Aura').replace(/</g, '&lt;');
+          const safeHost = (room.hostName || 'Anfitrión').replace(/</g, '&lt;');
+          const pCount = room.playersCount || 1;
+          const maxP = room.maxPlayers || 8;
+
+          return `
+            <div class="server-card">
+              <div class="server-card-info">
+                <div class="server-card-title">
+                  <span>⚡ ${safeName}</span>
+                  ${isMyOwn ? '<span style="font-size:7px;color:#ffe600;background:rgba(255,230,0,0.18);padding:2px 6px;border-radius:4px;border:1px solid #ffe600;">TU SALA</span>' : ''}
+                </div>
+                <div class="server-card-meta">
+                  <span class="server-badge-host">👑 HOST: <b>${safeHost}</b></span>
+                  <span class="server-badge-players">👥 <b>${pCount}/${maxP}</b> JUGADORES</span>
+                  <span style="color:#00f0ff;">🌐 WEBRTC P2P</span>
+                </div>
+              </div>
+              <div>
+                ${isMyOwn ? `
+                  <button class="btn-join-server" style="background:#ff9900;color:#000;" disabled>TUYA</button>
+                ` : isFull ? `
+                  <button class="btn-join-server" style="background:#555;color:#aaa;cursor:not-allowed;" disabled>LLENO</button>
+                ` : `
+                  <button class="btn-join-server" data-host="${room.hostPeerId}" data-name="${safeName}">ENTRAR ▶</button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Event listeners para los botones de unirse
+        serversListContainer.querySelectorAll('.btn-join-server[data-host]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const hostId = btn.getAttribute('data-host');
+            const rName = btn.getAttribute('data-name');
+            playSound('select');
+            joinP2PServer(hostId, rName);
+          });
+        });
+      });
+    }
+
+    /* ══ MENU TRANSITIONS & BUTTON EVENTS ══ */
     startBtn.addEventListener('click', () => {
       playSound('select');
       startScreen.classList.add('hidden');
       selectScreen.classList.remove('hidden');
+      initPeerJS();
     });
 
     backToStartBtn.addEventListener('click', () => {
@@ -2444,22 +4764,75 @@
       if (selectedChar) {
         playSound('select');
         selectScreen.classList.add('hidden');
-        gameContainer.style.display = 'block';
-
-        hudCharName.textContent = selectedChar.name;
-        renderAvatar(selectedChar, hudCharAvatar);
-
-        start3DGame();
+        serversScreen.classList.remove('hidden');
+        initPeerJS();
+        listenForP2PServers();
       }
+    });
+
+    backToSelectBtn.addEventListener('click', () => {
+      playSound('hover');
+      serversScreen.classList.add('hidden');
+      selectScreen.classList.remove('hidden');
+    });
+
+    // Toolbar buttons
+    btnOpenCreateServer.addEventListener('click', () => {
+      playSound('select');
+      createServerModal.classList.add('active');
+      inputServerName.value = `Arena de ${selectedChar.name}`;
+      inputServerName.focus();
+    });
+
+    btnCancelCreateServer.addEventListener('click', () => {
+      playSound('hover');
+      createServerModal.classList.remove('active');
+    });
+
+    btnConfirmCreateServer.addEventListener('click', () => {
+      playSound('select');
+      createServerModal.classList.remove('active');
+      const name = inputServerName.value.trim() || `Arena de ${selectedChar.name}`;
+      const maxP = selectMaxPlayers.value || 8;
+      createP2PServer(name, maxP);
+    });
+
+    btnRefreshServers.addEventListener('click', () => {
+      playSound('select');
+      listenForP2PServers();
+    });
+
+    btnOpenDirectJoin.addEventListener('click', () => {
+      playSound('select');
+      directJoinModal.classList.add('active');
+      inputDirectHostId.value = '';
+      inputDirectHostId.focus();
+    });
+
+    btnCancelDirectJoin.addEventListener('click', () => {
+      playSound('hover');
+      directJoinModal.classList.remove('active');
+    });
+
+    btnConfirmDirectJoin.addEventListener('click', () => {
+      const code = inputDirectHostId.value.trim();
+      if (!code) {
+        alert('Por favor introduce el código o Peer ID del anfitrión.');
+        return;
+      }
+      playSound('select');
+      directJoinModal.classList.remove('active');
+      joinP2PServer(code, 'Sala Privada');
+    });
+
+    btnPlaySolo.addEventListener('click', () => {
+      playSound('select');
+      playSoloGame();
     });
 
     exit3dBtn.addEventListener('click', () => {
       playSound('hover');
-      stopEmoteIn3D();
-      stop3DGame();
-      document.exitPointerLock();
-      gameContainer.style.display = 'none';
-      selectScreen.classList.remove('hidden');
+      leaveCurrentP2PServer();
     });
 
     openEmoteBtn.addEventListener('click', () => {
@@ -2472,64 +4845,44 @@
       emoteWheelModal.classList.remove('active');
     });
 
-    function syncAllPlayers() {
-      if (!is3dRunning) return;
-      const combined = { ...ffaPlayersData, ...farmearPlayersData };
-      const now = Date.now();
-
-      Object.entries(combined).forEach(([id, pData]) => {
-        if (id === myId || !pData || pData.dead) {
-          if (otherPlayers[id]) removeOtherPlayer(id);
-          return;
-        }
-        // Ignorar fantasmas desconectados hace más de 45 segundos si tienen timestamp
-        if (pData.t && (now - pData.t > 45000)) {
-          if (otherPlayers[id]) removeOtherPlayer(id);
-          return;
-        }
-        if (!otherPlayers[id]) {
-          spawnOtherPlayer(id, pData);
-        } else {
-          updateOtherPlayerData(id, pData);
-        }
-      });
-
-      Object.keys(otherPlayers).forEach(id => {
-        if (!combined[id]) {
-          removeOtherPlayer(id);
-        }
-      });
-    }
-
     function start3DGame() {
       if (!scene) {
         init3DScene();
       }
+
+      // Reinicio completo de estados de muerte / cinemática
+      isWastedCamActive = false;
+      isClashActive = true;
+      vsClashScore = 50;
+
+      const wastedOverlay = document.getElementById('wastedScreenOverlay');
+      const popup = document.getElementById('vsVictoryPopup');
+      if (wastedOverlay) wastedOverlay.classList.remove('active');
+      if (popup) popup.classList.remove('active');
+
+      if (hudFarmOrb) {
+        hudFarmOrb.classList.remove('disabled');
+      }
+
+      if (playerBillboardMesh) {
+        playerBillboardMesh.rotation.z = 0;
+        playerBillboardMesh.position.y = 1.6;
+      }
+
+      playerPos.set(0, 0, 10);
+      playerVel.set(0, 0, 0);
+      isGrounded = true;
+
+      auraCount = 0;
+      if (hudAuraVal) hudAuraVal.textContent = '0';
+      lastLocalAuraGain = null;
+      lastLocalCritHit = null;
+
       loadSpeakerTexture();
       loadPlayerSkinTexture(selectedChar.image || IMG_PLAYER);
       is3dRunning = true;
 
-      // Conexión Multijugador en Vivo (Sincronizado con index.html y farmearaura)
-      if (fbDb) {
-        onDisconnect(ref(fbDb, `fps/players_ffa/${myId}`)).remove();
-        onDisconnect(ref(fbDb, `fps/players_farmear/${myId}`)).remove();
-        maybePublish(true);
-
-        if (ffaUnsub) ffaUnsub();
-        if (farmearUnsub) farmearUnsub();
-
-        ffaUnsub = onValue(ref(fbDb, 'fps/players_ffa'), snap => {
-          if (!is3dRunning) return;
-          ffaPlayersData = snap.val() || {};
-          syncAllPlayers();
-        });
-
-        farmearUnsub = onValue(ref(fbDb, 'fps/players_farmear'), snap => {
-          if (!is3dRunning) return;
-          farmearPlayersData = snap.val() || {};
-          syncAllPlayers();
-        });
-      }
+      maybePublish(true);
 
       lastFrameTime = performance.now();
       loop3D(lastFrameTime);
@@ -2541,14 +4894,6 @@
         cancelAnimationFrame(animFrameId);
         animFrameId = null;
       }
-      if (ffaUnsub) { ffaUnsub(); ffaUnsub = null; }
-      if (farmearUnsub) { farmearUnsub(); farmearUnsub = null; }
-      if (fbDb) {
-        remove(ref(fbDb, `fps/players_ffa/${myId}`)).catch(() => {});
-        remove(ref(fbDb, `fps/players_farmear/${myId}`)).catch(() => {});
-      }
-      ffaPlayersData = {};
-      farmearPlayersData = {};
       cleanupAllOtherPlayers();
     }
 
@@ -3090,6 +5435,7 @@
           if (ud.colorAttr) ud.colorAttr.needsUpdate = true;
         }
       }
+
       animateAuraRingAndParticles(playerAuraRingMesh, auraCount);
       for (const id in otherPlayers) {
         animateAuraRingAndParticles(otherPlayers[id].auraRingMesh, otherPlayers[id].data?.aura || 0);
@@ -3195,6 +5541,35 @@
     }
 
     function updateCamera() {
+      if (isWastedCamActive) {
+        // 💀 GTA V Death Camera: la cámara se aleja drásticamente hacia arriba y atrás mirando al cuerpo caído
+        const elapsed = performance.now() - wastedCamStartTime;
+        const progress = Math.min(1.0, elapsed / 4500); // Progresión de 0 a 1 en 4.5 segundos
+        const easeOut = 1 - Math.pow(1 - progress, 2.8); // Curva cinemática suave estilo GTA V
+
+        // Distancia: empieza cerca (3.8m) y se aleja drásticamente hacia atrás (14.5m)
+        const camDist = 3.8 + easeOut * 10.7;
+
+        // Altura: empieza a 1.6m y se eleva hacia el cielo (7.8m)
+        const camHeight = 1.6 + easeOut * 6.2;
+
+        // Giro cinemático orbital lento
+        const rot = elapsed * 0.00045;
+
+        const camX = playerPos.x + Math.sin(cameraYaw + rot) * camDist;
+        const camZ = playerPos.z + Math.cos(cameraYaw + rot) * camDist;
+        const camY = playerPos.y + camHeight;
+
+        camera.position.set(camX, Math.max(camY, 0.4), camZ);
+        // Siempre enfoca con precisión el cuerpo tumbado en el suelo
+        camera.lookAt(playerPos.x, playerPos.y + 0.35, playerPos.z);
+
+        if (playerBillboardMesh) playerBillboardMesh.visible = true;
+        if (playerSpeakerMesh) playerSpeakerMesh.visible = isSpeakerEquipped;
+        if (fpSpeakerMesh) fpSpeakerMesh.visible = false;
+        return;
+      }
+
       if (isThirdPerson) {
         const dist = 6.0;
         const camX = playerPos.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * dist;
@@ -3512,22 +5887,47 @@
       }
     }
 
-    /* ══ TABLA DE CLASIFICACIÓN / LEADERBOARD MULTIJUGADOR ══ */
+    /* ══ TABLA DE CLASIFICACIÓN / DUELO VERSUS DE CLICS (SOLO SI HAY RIVAL EN EL CÍRCULO CON AURA ACTIVA) ══ */
+    function getNearbyClashOpponent() {
+      const myAuraActive = !!((playerAuraRingMesh && playerAuraRingMesh.visible) || isEmotePlaying);
+
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        if (op && op.group) {
+          const dist = playerPos.distanceTo(op.group.position);
+          if (dist <= 4.8) {
+            const rivalAuraActive = !!(op.auraRingMesh && op.auraRingMesh.visible) ||
+                                    !!(op.videoEl && op.currentEmoteVideo && !op.videoEl.paused) ||
+                                    !!op.data?.hasAuraRing ||
+                                    !!op.data?.activeEmote;
+
+            // El Duelo VS solo se activa si hay cercanía (< 4.8m) Y al menos uno tiene el aura o círculo invocado/activo
+            if (myAuraActive || rivalAuraActive) {
+              return { id, op, dist };
+            }
+          }
+        }
+      }
+      return null;
+    }
+
     let lastLeaderboardUpdate = 0;
     function updateLeaderboard(now) {
-      if (now - lastLeaderboardUpdate < 400) return;
+      if (now - lastLeaderboardUpdate < 250) return;
       lastLeaderboardUpdate = now;
 
       const leaderboardList = document.getElementById('leaderboardList');
       const leaderboardCount = document.getElementById('leaderboardCount');
-      if (!leaderboardList) return;
+      const hudVersusTitle = document.getElementById('hudVersusTitle');
+      const hudVsClashBanner = document.getElementById('hudVsClashBanner');
 
       const list = [];
       list.push({
-        id: myId,
+        id: myPeerId,
         name: selectedChar.name || 'Tú',
         skin: selectedChar.image || IMG_PLAYER,
         aura: auraCount,
+        wins: playerWins,
         isLocal: true
       });
 
@@ -3538,6 +5938,7 @@
           name: op.data?.name || 'Fighter',
           skin: op.data?.skin || IMG_PLAYER,
           aura: op.data?.aura || 0,
+          wins: op.data?.wins || 0,
           isLocal: false
         });
       }
@@ -3545,24 +5946,100 @@
       list.sort((a, b) => b.aura - a.aura);
 
       if (leaderboardCount) {
-        leaderboardCount.textContent = `${list.length} ${list.length === 1 ? 'PLAYER' : 'PLAYERS'}`;
+        leaderboardCount.textContent = `${list.length} ${list.length === 1 ? 'FIGHTER' : 'FIGHTERS'}`;
       }
 
-      leaderboardList.innerHTML = list.slice(0, 8).map((p, idx) => {
-        const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
-        const safeName = (p.name || 'Fighter').replace(/</g, '&lt;');
-        const auraFmt = (p.aura || 0).toLocaleString();
-        return `
-          <div class="hud-leaderboard-item ${p.isLocal ? 'is-me' : ''}">
-            <span class="hud-leaderboard-rank ${rankClass}">#${idx + 1}</span>
-            <div class="hud-leaderboard-user">
-              <div class="hud-leaderboard-avatar" style="background-image:url('${resolveUrl(p.skin)}')"></div>
-              <span class="hud-leaderboard-name">${safeName}</span>
+      const nearbyOpponent = getNearbyClashOpponent();
+
+      if (nearbyOpponent) {
+        // ── ESTADO PVP: ¡HAY UN RIVAL DENTRO DE TU CÍRCULO (< 4.8m)! MOSTRAR EN EL CENTRO ARRIBA ──
+        const p1Name = (selectedChar.name || 'Tú').replace(/</g, '&lt;');
+        const p2Name = (nearbyOpponent.op.data?.name || 'Rival').replace(/</g, '&lt;');
+        const p1Skin = selectedChar.image || IMG_PLAYER;
+        const p2Skin = nearbyOpponent.op.data?.skin || IMG_PLAYER;
+        const p1Aura = auraCount;
+        const p2Aura = nearbyOpponent.op.data?.aura || 0;
+
+        const myClashPct = p2pMode === 'client' ? (100 - vsClashScore) : vsClashScore;
+        const p1Pct = Math.round(myClashPct);
+        const p2Pct = Math.round(100 - myClashPct);
+
+        if (hudVsClashBanner) {
+          hudVsClashBanner.classList.add('active');
+          hudVsClashBanner.innerHTML = `
+            <div class="hud-versus-box">
+              <div class="hud-versus-players">
+                <div class="hud-vs-fighter p1">
+                  <div class="hud-vs-avatar-wrap">
+                    <img src="${resolveUrl(p1Skin)}" onerror="this.src='${IMG_PLAYER}'" alt="${p1Name}" />
+                  </div>
+                  <span class="hud-vs-name" title="${p1Name}">${p1Name} (TÚ)</span>
+                  <span class="hud-vs-aura">${p1Aura.toLocaleString()} ⚡</span>
+                </div>
+
+                <div class="hud-vs-badge">
+                  <span class="hud-vs-badge-text">VS</span>
+                  <span style="font-size:5px;color:#ffe600;margin-top:2px;">¡DUELO!</span>
+                </div>
+
+                <div class="hud-vs-fighter p2">
+                  <div class="hud-vs-avatar-wrap">
+                    <img src="${resolveUrl(p2Skin)}" onerror="this.src='${IMG_PLAYER}'" alt="${p2Name}" />
+                  </div>
+                  <span class="hud-vs-name" title="${p2Name}">${p2Name}</span>
+                  <span class="hud-vs-aura" style="color:#ff77b0;">${p2Aura.toLocaleString()} ⚡</span>
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;font-size:6px;color:#a0aabf;margin:2px 0;">
+                <span style="color:#00ff66;font-weight:bold;">${p1Pct}%</span>
+                <span style="color:#ffe600;letter-spacing:0.5px;">⚡ LUCHA DE CLICS EN CÍRCULO ⚡</span>
+                <span style="color:#ff0055;font-weight:bold;">${p2Pct}%</span>
+              </div>
+
+              <div class="hud-vs-bar-container" title="Tug-of-War: ${p1Pct}% vs ${p2Pct}%">
+                <div class="hud-vs-center-line" title="Centro 50%"></div>
+                <div class="hud-vs-bar-track">
+                  <div class="hud-vs-bar-fill" style="width: ${myClashPct}%;"></div>
+                </div>
+                <div class="hud-vs-clash-spark" style="left: ${myClashPct}%;">⚡</div>
+              </div>
+              <div style="text-align:center;font-size:5px;color:#00f0ff;margin-top:4px;letter-spacing:0.5px;">💥 ¡CLIQUEA RÁPIDO PARA EMPUJAR AL RIVAL!</div>
             </div>
-            <span class="hud-leaderboard-aura">${auraFmt} ⚡</span>
-          </div>
-        `;
-      }).join('');
+          `;
+        }
+      } else {
+        if (hudVsClashBanner) {
+          hudVsClashBanner.classList.remove('active');
+          hudVsClashBanner.innerHTML = '';
+        }
+      }
+
+      // ── LA DERECHA SIEMPRE MUESTRA EL TOP/RANKING LIMPIO ──
+      if (hudVersusTitle) {
+        hudVersusTitle.innerHTML = `🏆 <b style="color:#00f0ff;">TOP FIGHTERS</b>`;
+      }
+
+      if (leaderboardList) {
+        leaderboardList.innerHTML = list.map((p, idx) => {
+          const safeName = (p.name || 'Fighter').replace(/</g, '&lt;');
+          const auraFmt = (p.aura || 0).toLocaleString();
+          const winsCount = p.wins || 0;
+          return `
+            <div class="hud-leaderboard-item ${p.isLocal ? 'is-me' : ''}">
+              <span class="hud-leaderboard-rank rank-${idx + 1}">#${idx + 1}</span>
+              <div class="hud-leaderboard-user">
+                <div class="hud-leaderboard-avatar" style="background-image:url('${resolveUrl(p.skin)}')"></div>
+                <span class="hud-leaderboard-name">${safeName} ${p.isLocal ? '(Tú)' : ''}</span>
+              </div>
+              <div class="hud-leaderboard-stats">
+                <span class="hud-leaderboard-wins" title="${winsCount} Victorias">🏆 ${winsCount}</span>
+                <span class="hud-leaderboard-aura">${auraFmt} ⚡</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
     }
 
     function collectAuraNode(node) {
@@ -3585,6 +6062,10 @@
 
     /* ── HUD FARM BUTTON (FARMEAR AURA DINÁMICO + EMOTE ALEATORIO) ══ */
     function playRandomEmoteForChar() {
+      if (playerAuraRingMesh) {
+        playerAuraRingMesh.visible = true;
+      }
+
       if (isEmotePlaying) return;
 
       const validEmotes = rawEmotes.filter(e => !!getEmoteVideoForCharacter(e, selectedChar.name));
@@ -3592,6 +6073,15 @@
         const randomIndex = Math.floor(Math.random() * validEmotes.length);
         const chosen = validEmotes[randomIndex];
         playEmoteIn3D(chosen);
+      } else {
+        // Si el personaje no tiene emotes propios, equipar automáticamente la bocina con música para farmear aura
+        if (!isSpeakerEquipped) {
+          isSpeakerEquipped = true;
+          updateSpeakerVisuals();
+        }
+        if (!isSpeakerAudioPlaying) {
+          playSpeakerAudio(speakerMusicUrl);
+        }
       }
     }
 
@@ -3612,6 +6102,7 @@
     }
 
     function doFarmAura() {
+      if (!isClashActive) return; // Bloquear farmeo mientras se muestra la pantalla de victoria o WASTED
       playSound('farm');
       
       // Ganancia dinámica variable de aura con probabilidad de golpe crítico (15%)
@@ -3628,6 +6119,49 @@
       const textColor = isCrit ? '#ff0055' : '#ffe600';
       lastLocalAuraGain = { text: text, time: Date.now() };
 
+      // Empuje en el duelo de clics (SOLO SI HAY UN RIVAL DENTRO DE MI CÍRCULO < 4.8m)
+      const nearbyOpponent = getNearbyClashOpponent();
+      if (nearbyOpponent && isClashActive) {
+        const pushPower = isCrit ? 6.5 : 2.8;
+        if (p2pMode === 'host') {
+          // El Host (P1) empuja la barra hacia la derecha (100%)
+          vsClashScore = Math.min(100, vsClashScore + pushPower);
+
+          if (vsClashScore >= 100) {
+            const wName = selectedChar.name || 'Tú';
+            handleClashVictory(wName, true);
+            for (const pid in hostConnections) {
+              if (hostConnections[pid]?.open) {
+                hostConnections[pid].send({
+                  type: 'clash_win',
+                  winnerName: wName,
+                  winnerId: myPeerId
+                });
+              }
+            }
+          } else {
+            for (const pid in hostConnections) {
+              if (hostConnections[pid]?.open) {
+                hostConnections[pid].send({
+                  type: 'clash_update',
+                  score: vsClashScore
+                });
+              }
+            }
+          }
+        } else if (p2pMode === 'client') {
+          // El Cliente (P2) predice su empuje localmente y envía su clic al Host
+          vsClashScore = Math.max(0, vsClashScore - pushPower);
+          if (clientConnection && clientConnection.open) {
+            clientConnection.send({
+              type: 'clash_push',
+              senderName: selectedChar.name,
+              push: pushPower
+            });
+          }
+        }
+      }
+
       // Si es golpe crítico: vibrar la pantalla local, flash de impacto y sincronizar impacto al multijugador
       if (isCrit) {
         triggerCameraShake(0.38, 300);
@@ -3641,7 +6175,7 @@
         spawnBigAuraRing(playerPos.x, playerPos.z);
       }
 
-      spawnFloatingAura(text);
+      spawnFloatingAura(text, isCrit);
       spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, text, textColor);
 
       if (!isEmotePlaying) {
@@ -3653,17 +6187,25 @@
 
     hudFarmOrb.addEventListener('click', doFarmAura);
 
-    function spawnFloatingAura(text) {
+    function spawnFloatingAura(text, isCrit = false) {
+      if (!hudFarmOrb) return;
       const rect = hudFarmOrb.getBoundingClientRect();
       const p = document.createElement('div');
-      p.className = 'aura-float-num';
+      p.className = `aura-float-num ${isCrit ? 'crit' : ''}`;
       p.textContent = text;
-      p.style.left = `${rect.left + rect.width / 2 + (Math.random() * 30 - 15)}px`;
-      p.style.top = `${rect.top}px`;
-      p.style.setProperty('--tx', `${Math.random() * 40 - 20}px`);
+
+      const startX = rect.left + rect.width / 2 + (Math.random() * 24 - 12);
+      const startY = rect.top + 6 + (Math.random() * 10 - 5);
+      const driftX = (Math.random() - 0.5) * 60;
+      const rot = (Math.random() - 0.5) * 14;
+
+      p.style.left = `${startX}px`;
+      p.style.top = `${startY}px`;
+      p.style.setProperty('--tx', `${driftX}px`);
+      p.style.setProperty('--rot', `${rot}deg`);
       document.body.appendChild(p);
 
-      setTimeout(() => p.remove(), 700);
+      setTimeout(() => p.remove(), 850);
     }
   </script>
 </body>
