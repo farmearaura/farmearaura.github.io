@@ -1,9 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>FARMEAR AURA 3D - Battle Royale</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Farmear Aura 3D - Battle Royale Online Multijugador</title>
+
+  <!-- SEO Meta Tags para Google Search Console & Motores de Búsqueda -->
+  <meta name="description" content="Juega gratis a Farmear Aura 3D Online. Compite en tiempo real en un mundo 3D multijugador P2P, desbloquea personajes, activa emotes con música y lidera el Hall of Fame global.">
+  <meta name="keywords" content="farmear aura, farmear aura 3d, juego online gratis, battle royale p2p, multijugador webrtc, juego de navegador, aura 3d game">
+  <meta name="author" content="Farmear Aura 3D Team">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#00f0ff">
+  <link rel="canonical" href="https://farmearaura.github.io/">
+
+  <!-- Schema.org JSON-LD para Google Search Rich Results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Farmear Aura 3D",
+    "url": "https://farmearaura.github.io/",
+    "description": "Juego web multijugador 3D en tiempo real con sistema de duelos PVP, farmeo de aura y sincronización WebRTC P2P.",
+    "genre": ["Action", "Battle Royale", "Multiplayer", "Casual"],
+    "playMode": "MultiPlayer",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any"
+  }
+  </script>
+
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
@@ -16,7 +41,8 @@
       -webkit-user-select: none;
     }
 
-    html, body {
+    html,
+    body {
       background-color: #060913;
       width: 100vw;
       height: 100vh;
@@ -47,7 +73,7 @@
       width: 100vw;
       height: 100vh;
       background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%),
-                  radial-gradient(circle at center, rgba(0,0,0,0) 65%, rgba(0,0,0,0.45) 100%);
+        radial-gradient(circle at center, rgba(0, 0, 0, 0) 65%, rgba(0, 0, 0, 0.45) 100%);
       background-size: 100% 4px, 100% 100%;
       z-index: 9999;
       pointer-events: none;
@@ -74,6 +100,7 @@
       z-index: 30;
       transition: all 0.15s ease;
     }
+
     .crt-toggle-menu:hover {
       background: #00f0ff;
       color: #000;
@@ -117,7 +144,7 @@
       font-size: clamp(30px, 4.5vw, 50px);
       line-height: 1.25;
       color: #fff;
-      text-shadow: 
+      text-shadow:
         3px 3px 0px #bd00ff,
         -3px -3px 0px #00f0ff;
       letter-spacing: 3px;
@@ -142,6 +169,7 @@
       align-items: center;
       gap: 8px;
     }
+
     .status-dot {
       width: 8px;
       height: 8px;
@@ -174,19 +202,151 @@
       box-shadow: 0 2px 0 #003b8e;
     }
 
-    /* Hall of Fame / Top Victorias en Pantalla de Inicio */
-    .start-leaderboard-box {
+    /* Tarjeta de Nickname en Pantalla de Inicio */
+    .player-nickname-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(10, 16, 36, 0.92);
+      border: 2px solid #00f0ff;
+      border-radius: 24px;
+      padding: 7px 18px;
+      margin-top: 4px;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .player-nickname-badge:hover {
+      border-color: #ffe600;
+      box-shadow: 0 0 20px rgba(255, 230, 0, 0.45);
+      transform: scale(1.03);
+    }
+
+    .player-nickname-badge:active {
+      transform: scale(0.98);
+    }
+
+    .player-nickname-text {
+      font-size: 10px;
+      color: #ffe600;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .btn-change-name {
+      background: rgba(0, 240, 255, 0.2);
+      border: 1px solid #00f0ff;
+      border-radius: 6px;
+      color: #00f0ff;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 3px 6px;
+      transition: all 0.1s;
+    }
+
+    .btn-change-name:hover {
+      background: #00f0ff;
+      color: #000;
+    }
+
+    /* Botón de Discord */
+    .btn-discord {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(180deg, #5865F2 0%, #4752C4 100%);
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      padding: 10px 22px;
+      font-size: 9px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 0 #2d337a, 0 0 15px rgba(88, 101, 242, 0.45);
+      transition: all 0.12s ease;
+      margin-top: 6px;
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .btn-discord:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 #2d337a, 0 0 22px rgba(88, 101, 242, 0.8);
+      background: linear-gradient(180deg, #6975f5 0%, #5865F2 100%);
+    }
+
+    .btn-discord:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #2d337a;
+    }
+
+    /* Banner para Creadores de Contenido */
+    .creator-promo-box {
       width: min(390px, 92vw);
-      background: rgba(10, 16, 36, 0.94);
-      border: 2px solid rgba(0, 240, 255, 0.5);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 0 25px rgba(0, 240, 255, 0.22);
+      background: rgba(14, 20, 44, 0.92);
+      border: 1px solid rgba(255, 0, 85, 0.5);
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-top: 4px;
+      box-shadow: 0 0 16px rgba(255, 0, 85, 0.2);
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-top: 4px;
+      gap: 4px;
+      text-align: left;
+      backdrop-filter: blur(4px);
+    }
+
+    .creator-promo-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 7px;
+      color: #ff0055;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .creator-promo-text {
+      font-size: 6.5px;
+      color: #b0bcd0;
+      line-height: 1.5;
+    }
+
+    .creator-promo-text b {
+      color: #00f0ff;
+    }
+
+    /* Hall of Fame / Top Victorias en Pantalla de Inicio - Posicionado a la Derecha */
+    .start-leaderboard-box {
+      position: absolute;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 320px;
+      max-width: 90vw;
+      background: rgba(10, 16, 36, 0.94);
+      border: 2px solid rgba(0, 240, 255, 0.55);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 240, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
       z-index: 20;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    @media (max-width: 980px) {
+      .start-leaderboard-box {
+        position: static;
+        transform: none;
+        width: min(390px, 92vw);
+        margin-top: 10px;
+      }
     }
 
     .start-leaderboard-header {
@@ -207,7 +367,7 @@
       flex-direction: column;
       gap: 4px;
       overflow-y: auto;
-      max-height: 130px;
+      max-height: 240px;
       padding-right: 2px;
     }
 
@@ -216,7 +376,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 4px 8px;
+      padding: 5px 8px;
       border-radius: 6px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -235,9 +395,18 @@
       text-align: center;
       font-size: 8px;
     }
-    .start-leaderboard-rank.r-1 { color: #ffe600; }
-    .start-leaderboard-rank.r-2 { color: #d0d5dd; }
-    .start-leaderboard-rank.r-3 { color: #d97706; }
+
+    .start-leaderboard-rank.r-1 {
+      color: #ffe600;
+    }
+
+    .start-leaderboard-rank.r-2 {
+      color: #d0d5dd;
+    }
+
+    .start-leaderboard-rank.r-3 {
+      color: #d97706;
+    }
 
     .start-leaderboard-user {
       display: flex;
@@ -335,6 +504,7 @@
     .grid-container::-webkit-scrollbar {
       width: 6px;
     }
+
     .grid-container::-webkit-scrollbar-thumb {
       background: #00f0ff;
       border-radius: 3px;
@@ -355,7 +525,8 @@
       padding: 6px;
     }
 
-    .character-card:hover, .character-card.selected {
+    .character-card:hover,
+    .character-card.selected {
       border-color: #ffffff;
       transform: translateY(-2px);
       background: rgba(0, 150, 255, 0.3);
@@ -729,8 +900,15 @@
     }
 
     @keyframes vsBannerDrop {
-      0% { opacity: 0; transform: translate(-50%, -15px) scale(0.92); }
-      100% { opacity: 1; transform: translate(-50%, 0) scale(1.0); }
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -15px) scale(0.92);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1.0);
+      }
     }
 
     .hud-versus-box {
@@ -820,8 +998,13 @@
     }
 
     @keyframes vsPulse {
-      0% { transform: scale(0.92); }
-      100% { transform: scale(1.12); }
+      0% {
+        transform: scale(0.92);
+      }
+
+      100% {
+        transform: scale(1.12);
+      }
     }
 
     .hud-vs-bar-container {
@@ -894,13 +1077,25 @@
     }
 
     @keyframes clashSparkPulse {
-      0% { transform: translate(-50%, -50%) scale(0.9) rotate(0deg); box-shadow: 0 0 10px #ffe600, 0 0 18px #ff0055; }
-      100% { transform: translate(-50%, -50%) scale(1.25) rotate(15deg); box-shadow: 0 0 20px #ffe600, 0 0 32px #00ff66; }
+      0% {
+        transform: translate(-50%, -50%) scale(0.9) rotate(0deg);
+        box-shadow: 0 0 10px #ffe600, 0 0 18px #ff0055;
+      }
+
+      100% {
+        transform: translate(-50%, -50%) scale(1.25) rotate(15deg);
+        box-shadow: 0 0 20px #ffe600, 0 0 32px #00ff66;
+      }
     }
 
     @keyframes clashRingRotate {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     .hud-leaderboard-list {
@@ -934,9 +1129,19 @@
       width: 14px;
       text-align: center;
     }
-    .hud-leaderboard-rank.rank-1 { color: #ffe600; text-shadow: 0 0 6px rgba(255, 230, 0, 0.6); }
-    .hud-leaderboard-rank.rank-2 { color: #d0d5dd; }
-    .hud-leaderboard-rank.rank-3 { color: #d97706; }
+
+    .hud-leaderboard-rank.rank-1 {
+      color: #ffe600;
+      text-shadow: 0 0 6px rgba(255, 230, 0, 0.6);
+    }
+
+    .hud-leaderboard-rank.rank-2 {
+      color: #d0d5dd;
+    }
+
+    .hud-leaderboard-rank.rank-3 {
+      color: #d97706;
+    }
 
     .hud-leaderboard-user {
       display: flex;
@@ -1019,7 +1224,8 @@
     }
 
     /* Emote Wheel Modal */
-    #emoteWheelModal, #bocinaMusicModal {
+    #emoteWheelModal,
+    #bocinaMusicModal {
       position: absolute;
       inset: 0;
       background: rgba(0, 0, 0, 0.7);
@@ -1029,7 +1235,8 @@
       z-index: 100;
     }
 
-    #emoteWheelModal.active, #bocinaMusicModal.active {
+    #emoteWheelModal.active,
+    #bocinaMusicModal.active {
       display: flex !important;
     }
 
@@ -1074,6 +1281,7 @@
     .emote-icon {
       font-size: 24px;
     }
+
     .emote-icon img {
       width: 26px;
       height: 26px;
@@ -1149,14 +1357,17 @@
         opacity: 0;
         transform: translate(-50%, 0) scale(0.5) rotate(var(--rot, 0deg));
       }
+
       18% {
         opacity: 1;
         transform: translate(calc(-50% + var(--tx, 0px) * 0.35), -28px) scale(1.3) rotate(var(--rot, 0deg));
       }
+
       70% {
         opacity: 1;
         transform: translate(calc(-50% + var(--tx, 0px) * 0.8), -65px) scale(1.05) rotate(var(--rot, 0deg));
       }
+
       100% {
         opacity: 0;
         transform: translate(calc(-50% + var(--tx, 0px)), -100px) scale(0.8) rotate(var(--rot, 0deg));
@@ -1173,12 +1384,21 @@
       opacity: 0;
       mix-blend-mode: screen;
     }
+
     .crit-impact-flash.active {
       animation: critFlashAnim 0.35s ease-out forwards;
     }
+
     @keyframes critFlashAnim {
-      0% { opacity: 1; transform: scale(1.03); }
-      100% { opacity: 0; transform: scale(1.0); }
+      0% {
+        opacity: 1;
+        transform: scale(1.03);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.0);
+      }
     }
 
     .crit-banner-popup {
@@ -1196,14 +1416,31 @@
       white-space: nowrap;
       letter-spacing: 2px;
     }
+
     .crit-banner-popup.active {
       animation: critBannerAnim 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
+
     @keyframes critBannerAnim {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-6deg); }
-      22% { opacity: 1; transform: translate(-50%, -50%) scale(1.25) rotate(2deg); }
-      70% { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(0deg); }
-      100% { opacity: 0; transform: translate(-50%, -65%) scale(1.1); }
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.4) rotate(-6deg);
+      }
+
+      22% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.25) rotate(2deg);
+      }
+
+      70% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.0) rotate(0deg);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -65%) scale(1.1);
+      }
     }
 
     /* Popup de Victoria en Duelo de Aura por Clics */
@@ -1232,11 +1469,29 @@
     }
 
     @keyframes victoryPopupAnim {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-5deg); }
-      15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(0deg); }
-      25% { transform: translate(-50%, -50%) scale(1.0); }
-      80% { opacity: 1; transform: translate(-50%, -50%) scale(1.0); }
-      100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3) rotate(-5deg);
+      }
+
+      15% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1) rotate(0deg);
+      }
+
+      25% {
+        transform: translate(-50%, -50%) scale(1.0);
+      }
+
+      80% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.9);
+      }
     }
 
     .vs-victory-badge {
@@ -1278,7 +1533,8 @@
       justify-content: center;
       align-items: center;
       z-index: 99999;
-      pointer-events: auto; /* Permitir interactuar con los botones */
+      pointer-events: auto;
+      /* Permitir interactuar con los botones */
       cursor: default;
     }
 
@@ -1288,11 +1544,19 @@
     }
 
     @keyframes wastedFadeIn {
-      0% { opacity: 0; transform: scale(1.06); }
-      100% { opacity: 1; transform: scale(1.0); }
+      0% {
+        opacity: 0;
+        transform: scale(1.06);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1.0);
+      }
     }
 
-    .wasted-letterbox-top, .wasted-letterbox-bottom {
+    .wasted-letterbox-top,
+    .wasted-letterbox-bottom {
       position: absolute;
       left: 0;
       right: 0;
@@ -1301,8 +1565,14 @@
       box-shadow: 0 0 15px #000;
       pointer-events: none;
     }
-    .wasted-letterbox-top { top: 0; }
-    .wasted-letterbox-bottom { bottom: 0; }
+
+    .wasted-letterbox-top {
+      top: 0;
+    }
+
+    .wasted-letterbox-bottom {
+      bottom: 0;
+    }
 
     .wasted-title-text {
       font-family: 'Arial Black', Impact, sans-serif;
@@ -1317,8 +1587,15 @@
     }
 
     @keyframes wastedTextZoom {
-      0% { transform: scale(1.45); opacity: 0; }
-      100% { transform: scale(1.0); opacity: 1; }
+      0% {
+        transform: scale(1.45);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1.0);
+        opacity: 1;
+      }
     }
 
     .wasted-sub-text {
@@ -1334,8 +1611,15 @@
     }
 
     @keyframes wastedSubFade {
-      0% { opacity: 0; transform: translateY(10px); }
-      100% { opacity: 1; transform: translateY(0); }
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Botones de Reaparición estilo Minecraft con retraso de aparición */
@@ -1350,8 +1634,15 @@
     }
 
     @keyframes wastedButtonsFade {
-      0% { opacity: 0; transform: translateY(22px); }
-      100% { opacity: 1; transform: translateY(0); }
+      0% {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .wasted-btn {
@@ -1496,26 +1787,32 @@
       border-color: #00ff66;
       background: rgba(0, 255, 102, 0.25);
     }
+
     .mobile-btn-emote {
       border-color: #bd00ff;
       background: rgba(189, 0, 255, 0.25);
     }
+
     .mobile-btn-bocina {
       border-color: #ff0077;
       background: rgba(255, 0, 119, 0.25);
     }
 
-    @media (max-width: 900px), (pointer: coarse) {
+    @media (max-width: 900px),
+    (pointer: coarse) {
       .mobile-controls-layer {
         display: block;
       }
+
       .hud-controls-hint {
         display: none;
       }
+
       .hud-bottom {
         justify-content: flex-end;
         padding-right: 5px;
       }
+
       .hud-farm-orb {
         width: 86px;
         height: 86px;
@@ -1525,12 +1822,14 @@
         position: relative;
         z-index: 50;
       }
+
       .mobile-action-buttons {
         bottom: 115px;
         right: 20px;
         gap: 10px;
         z-index: 50;
       }
+
       .virtual-joystick-zone {
         bottom: 25px;
         left: 20px;
@@ -1538,6 +1837,7 @@
         height: 130px;
         z-index: 50;
       }
+
       .hud-leaderboard {
         width: 160px;
         top: 52px;
@@ -1622,8 +1922,15 @@
     }
 
     @keyframes p2pPulse {
-      0% { opacity: 0.5; transform: scale(0.85); }
-      100% { opacity: 1; transform: scale(1.15); }
+      0% {
+        opacity: 0.5;
+        transform: scale(0.85);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1.15);
+      }
     }
 
     .servers-toolbar {
@@ -1644,7 +1951,7 @@
       align-items: center;
       gap: 6px;
       transition: transform 0.1s ease, box-shadow 0.1s ease;
-      box-shadow: 0 4px 0 rgba(0,0,0,0.5);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
       text-shadow: 1px 1px #000;
     }
 
@@ -1655,7 +1962,7 @@
 
     .btn-server-action:active {
       transform: translateY(2px);
-      box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
     }
 
     .btn-server-create {
@@ -1694,6 +2001,7 @@
     .servers-list-container::-webkit-scrollbar {
       width: 6px;
     }
+
     .servers-list-container::-webkit-scrollbar-thumb {
       background: #00f0ff;
       border-radius: 3px;
@@ -1835,7 +2143,8 @@
       color: #ffe600;
     }
 
-    .p2p-form-group input, .p2p-form-group select {
+    .p2p-form-group input,
+    .p2p-form-group select {
       background: #090d1c;
       border: 2px solid #00f0ff;
       border-radius: 6px;
@@ -1898,6 +2207,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <!-- Overlay de Efecto CRT (Activado por defecto) -->
@@ -1913,18 +2223,39 @@
         <p class="game-subtitle">⚡ EDICIÓN BATTLE ROYALE ⚡</p>
       </div>
 
-      <div class="firebase-status" id="firebase-status">
-        <span class="status-dot"></span>
-        <span id="firebase-status-text">Conectando a Firebase...</span>
+      <!-- Badge de Nombre / Nickname del Jugador -->
+      <div class="player-nickname-badge" id="playerNicknameBadge" title="Toca para cambiar tu nombre">
+        <span style="font-size:7px;color:#a0aabf;">NOMBRE:</span>
+        <span class="player-nickname-text" id="playerNicknameDisplay">DEFAULT</span>
+        <button class="btn-change-name" id="btnOpenNameModal" title="Editar tu nombre">✏️</button>
       </div>
 
       <button class="btn-start" id="start-btn">PRESIONA START</button>
+
+      <!-- Botón de Discord Oficial -->
+      <a href="https://discord.gg/ZrWYtaCDFt" target="_blank" rel="noopener noreferrer" class="btn-discord" id="btnDiscord">
+        <svg width="18" height="18" viewBox="0 0 127.14 96.36" fill="currentColor">
+          <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z"/>
+        </svg>
+        <span>DISCORD OFICIAL</span>
+      </a>
+
+      <!-- Banner para Creadores de Contenido -->
+      <div class="creator-promo-box">
+        <div class="creator-promo-title">
+          <span>🎥 ¿HACES DIRECTOS O VIDEOS?</span>
+          <span style="color:#ffe600;font-size:6.5px;">TIKTOK / YOUTUBE / TWITCH</span>
+        </div>
+        <p class="creator-promo-text">
+          ¡Siéntete libre de grabar y streamear <b>Farmear Aura 3D</b>! Crea salas privadas, farmea aura en vivo y desafía a tus seguidores a duelos de clics.
+        </p>
+      </div>
 
       <!-- Cuadro Top Victorias en Pantalla de Inicio -->
       <div class="start-leaderboard-box">
         <div class="start-leaderboard-header">
           <span>🏆 TOP VICTORIAS (HALL OF FAME)</span>
-          <span style="color:#00ff66;font-size:7px;">GLOBAL P2P</span>
+          <span style="color:#00ff66;font-size:7px;">GLOBAL</span>
         </div>
         <div class="start-leaderboard-list" id="startLeaderboardList"></div>
       </div>
@@ -1948,7 +2279,7 @@
       <div class="preview-panel">
         <div style="width: 100%; text-align: center;">
           <h2 class="select-title">FIGHTER SELECCIONADO</h2>
-          
+
           <div class="portrait-box" id="preview-portrait"></div>
           <div class="character-name" id="preview-name">DEFAULT</div>
           <div class="aura-stat" id="preview-aura">AURA: +9999</div>
@@ -1993,12 +2324,32 @@
       </div>
     </div>
 
+    <!-- Modal: Ingresar / Cambiar Nombre de Jugador -->
+    <div id="playerNameModal" class="p2p-modal-backdrop">
+      <div class="p2p-modal-box" style="max-width:420px;">
+        <h3 class="p2p-modal-title">🏷️ TU NOMBRE DE FIGHTER</h3>
+        <p class="p2p-modal-desc">Ingresa tu apodo o nickname. Se guardará localmente y los demás jugadores lo verán en
+          el mundo 3D, salas y Hall of Fame:</p>
+
+        <div class="p2p-form-group">
+          <label>NICKNAME (MÁX 16 CARACTERES):</label>
+          <input type="text" id="inputPlayerName" maxlength="16" placeholder="Ej: ProAuraMaster" />
+        </div>
+
+        <div class="p2p-modal-actions">
+          <button class="btn-p2p-submit" id="btnConfirmPlayerName">💾 GUARDAR Y CONTINUAR</button>
+          <button class="btn-p2p-cancel" id="btnCancelPlayerName" style="display:none;">CANCELAR</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: Crear Servidor P2P -->
     <div id="createServerModal" class="p2p-modal-backdrop">
       <div class="p2p-modal-box">
         <h3 class="p2p-modal-title">➕ CREAR NUEVO SERVIDOR P2P</h3>
-        <p class="p2p-modal-desc">Serás el Anfitrión (Host) y los demás jugadores se conectarán directamente a tu partida:</p>
-        
+        <p class="p2p-modal-desc">Serás el Anfitrión (Host) y los demás jugadores se conectarán directamente a tu
+          partida:</p>
+
         <div class="p2p-form-group">
           <label>NOMBRE DE LA SALA / SERVIDOR:</label>
           <input type="text" id="inputServerName" maxlength="24" placeholder="Ej: Arena de Aura Legendaria" />
@@ -2026,7 +2377,7 @@
       <div class="p2p-modal-box">
         <h3 class="p2p-modal-title">🔑 UNIRSE POR CÓDIGO P2P</h3>
         <p class="p2p-modal-desc">Pega el ID o Código P2P del anfitrión para entrar a su sala privada:</p>
-        
+
         <div class="p2p-form-group">
           <label>CÓDIGO O PEER ID DEL HOST:</label>
           <input type="text" id="inputDirectHostId" placeholder="fa_xxxxxxx..." />
@@ -2043,8 +2394,9 @@
     <div id="customSkinModal" class="p2p-modal-backdrop">
       <div class="p2p-modal-box">
         <h3 class="p2p-modal-title">➕ SUBIR PERSONAJE PERSONALIZADO</h3>
-        <p class="p2p-modal-desc">Sube una imagen desde tu PC (PNG/JPG). Se optimizará y los demás jugadores la verán en 3D vía P2P:</p>
-        
+        <p class="p2p-modal-desc">Sube una imagen desde tu PC (PNG/JPG). Se optimizará y los demás jugadores la verán en
+          3D vía P2P:</p>
+
         <div class="p2p-form-group">
           <label>NOMBRE DEL FIGHTER:</label>
           <input type="text" id="inputCustomSkinName" maxlength="18" placeholder="Ej: Mi Skin Personalizada" />
@@ -2052,17 +2404,23 @@
 
         <div class="p2p-form-group">
           <label>IMAGEN DEL FIGHTER (PNG / JPG / GIF / WEBP):</label>
-          <input type="file" id="inputCustomSkinFile" accept="image/png, image/jpeg, image/webp, image/gif, .gif, .png, .jpg, .jpeg, .webp" style="display:none;" />
-          <button type="button" class="btn-server-action btn-server-direct" id="btnSelectSkinFile" style="justify-content:center;margin-top:4px;">
+          <input type="file" id="inputCustomSkinFile"
+            accept="image/png, image/jpeg, image/webp, image/gif, .gif, .png, .jpg, .jpeg, .webp"
+            style="display:none;" />
+          <button type="button" class="btn-server-action btn-server-direct" id="btnSelectSkinFile"
+            style="justify-content:center;margin-top:4px;">
             📁 SELECCIONAR ARCHIVO (PNG, JPG, GIF)
           </button>
         </div>
 
         <!-- Preview del personaje seleccionado -->
-        <div id="customSkinPreviewBox" style="display:none;align-items:center;gap:12px;background:rgba(8,16,36,0.85);border:1px solid #00f0ff;border-radius:8px;padding:8px;">
-          <img id="customSkinPreviewImg" src="" alt="Preview" style="width:48px;height:48px;object-fit:contain;image-rendering:pixelated;border-radius:4px;border:1px solid #00ff66;background:#000;" />
+        <div id="customSkinPreviewBox"
+          style="display:none;align-items:center;gap:12px;background:rgba(8,16,36,0.85);border:1px solid #00f0ff;border-radius:8px;padding:8px;">
+          <img id="customSkinPreviewImg" src="" alt="Preview"
+            style="width:48px;height:48px;object-fit:contain;image-rendering:pixelated;border-radius:4px;border:1px solid #00ff66;background:#000;" />
           <div style="display:flex;flex-direction:column;gap:3px;overflow:hidden;">
-            <span style="font-size:8px;color:#ffe600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="customSkinPreviewName">Imagen cargada</span>
+            <span style="font-size:8px;color:#ffe600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+              id="customSkinPreviewName">Imagen cargada</span>
             <span style="font-size:7px;color:#00ff66;">✓ Lista para P2P</span>
           </div>
         </div>
@@ -2081,7 +2439,8 @@
 
       <!-- Emote Video element (for Texture and Audio) -->
       <video id="emoteVideo" playsinline loop crossorigin="anonymous" style="display:none;"></video>
-      <div id="emoteVideoOverlay" style="display:none !important;"><b id="currentEmoteName" style="display:none;"></b><button id="stopEmoteBtn" style="display:none;"></button></div>
+      <div id="emoteVideoOverlay" style="display:none !important;"><b id="currentEmoteName"
+          style="display:none;"></b><button id="stopEmoteBtn" style="display:none;"></button></div>
 
       <!-- HUD 3D -->
       <div class="game-hud">
@@ -2096,7 +2455,7 @@
 
           <div class="hud-server-info" id="hudServerInfo">
             <span class="server-dot"></span>
-            <span id="hudServerName">SALA P2P</span> &bull; 
+            <span id="hudServerName">SALA P2P</span> &bull;
             <span id="hudServerPlayers" style="color:#ffe600;">1/8</span>
           </div>
 
@@ -2112,7 +2471,7 @@
             <button class="hud-btn" id="exit3dBtn" style="border-color:#ff4444;color:#ff8888;">◄ SALIR</button>
           </div>
         </div>
- 
+
         <!-- Duelo Versus Centrado Arriba (Solo cuando hay rival en el círculo) -->
         <div id="hudVsClashBanner" class="hud-vs-top-center"></div>
 
@@ -2126,52 +2485,52 @@
         </div>
 
         <!-- Efecto de Impacto Crítico en Pantalla -->
-      <div class="crit-impact-flash" id="critImpactFlash"></div>
-      <div class="crit-banner-popup" id="critBannerPopup">💥 ¡GOLPE CRÍTICO!</div>
+        <div class="crit-impact-flash" id="critImpactFlash"></div>
+        <div class="crit-banner-popup" id="critBannerPopup">💥 ¡GOLPE CRÍTICO!</div>
 
-      <!-- Popup de Victoria en Duelo de Clics -->
-      <div class="vs-victory-popup" id="vsVictoryPopup">
-        <div class="vs-victory-badge">🏆 ¡VICTORIA EN DUELO! 🏆</div>
-        <div class="vs-victory-winner" id="vsVictoryWinner">JUGADOR 1 GANA</div>
-        <div class="vs-victory-bonus" id="vsVictoryBonus">+5,000 AURA BONUS ⚡</div>
-      </div>
-
-      <!-- Pantalla WASTED estilo GTA V para el que pierde el duelo -->
-      <div class="wasted-screen-overlay" id="wastedScreenOverlay">
-        <div class="wasted-letterbox-top"></div>
-        <div class="wasted-title-text">WASTED</div>
-        <div class="wasted-sub-text" id="wastedSubText">PERDISTE TODA TU AURA 💀</div>
-
-        <!-- Botones de Reaparición estilo Minecraft -->
-        <div class="wasted-actions-container">
-          <button class="wasted-btn wasted-btn-respawn" id="btnWastedRespawn">
-            🔄 REAPARECER (REVIVIR)
-          </button>
-          <button class="wasted-btn wasted-btn-menu" id="btnWastedMainMenu">
-            🚪 MENÚ PRINCIPAL
-          </button>
+        <!-- Popup de Victoria en Duelo de Clics -->
+        <div class="vs-victory-popup" id="vsVictoryPopup">
+          <div class="vs-victory-badge">🏆 ¡VICTORIA EN DUELO! 🏆</div>
+          <div class="vs-victory-winner" id="vsVictoryWinner">JUGADOR 1 GANA</div>
+          <div class="vs-victory-bonus" id="vsVictoryBonus">+5,000 AURA BONUS ⚡</div>
         </div>
 
-        <div class="wasted-letterbox-bottom"></div>
-      </div>
+        <!-- Pantalla WASTED estilo GTA V para el que pierde el duelo -->
+        <div class="wasted-screen-overlay" id="wastedScreenOverlay">
+          <div class="wasted-letterbox-top"></div>
+          <div class="wasted-title-text">WASTED</div>
+          <div class="wasted-sub-text" id="wastedSubText">PERDISTE TODA TU AURA 💀</div>
 
-      <!-- Controles Táctiles para Móviles / Celular -->
-      <div class="mobile-controls-layer" id="mobileControlsLayer">
-        <!-- Joystick Virtual (Movimiento) -->
-        <div class="virtual-joystick-zone" id="virtualJoystickZone">
-          <div class="virtual-joystick-base"></div>
-          <div class="virtual-joystick-knob" id="virtualJoystickKnob"></div>
+          <!-- Botones de Reaparición estilo Minecraft -->
+          <div class="wasted-actions-container">
+            <button class="wasted-btn wasted-btn-respawn" id="btnWastedRespawn">
+              🔄 REAPARECER (REVIVIR)
+            </button>
+            <button class="wasted-btn wasted-btn-menu" id="btnWastedMainMenu">
+              🚪 MENÚ PRINCIPAL
+            </button>
+          </div>
+
+          <div class="wasted-letterbox-bottom"></div>
         </div>
 
-        <!-- Botones de Acción Móviles -->
-        <div class="mobile-action-buttons">
-          <button class="mobile-btn mobile-btn-jump" id="mobileBtnJump" title="Saltar">🦘</button>
-          <button class="mobile-btn mobile-btn-emote" id="mobileBtnEmote" title="Emotes">🕺</button>
-          <button class="mobile-btn mobile-btn-bocina" id="mobileBtnBocina" title="Bocina">📻</button>
-        </div>
-      </div>
+        <!-- Controles Táctiles para Móviles / Celular -->
+        <div class="mobile-controls-layer" id="mobileControlsLayer">
+          <!-- Joystick Virtual (Movimiento) -->
+          <div class="virtual-joystick-zone" id="virtualJoystickZone">
+            <div class="virtual-joystick-base"></div>
+            <div class="virtual-joystick-knob" id="virtualJoystickKnob"></div>
+          </div>
 
-      <div class="hud-bottom">
+          <!-- Botones de Acción Móviles -->
+          <div class="mobile-action-buttons">
+            <button class="mobile-btn mobile-btn-jump" id="mobileBtnJump" title="Saltar">🦘</button>
+            <button class="mobile-btn mobile-btn-emote" id="mobileBtnEmote" title="Emotes">🕺</button>
+            <button class="mobile-btn mobile-btn-bocina" id="mobileBtnBocina" title="Bocina">📻</button>
+          </div>
+        </div>
+
+        <div class="hud-bottom">
           <div class="hud-controls-hint">
             <b>[W,A,S,D]</b> Moverse &bull; <b>[ESPACIO]</b> Saltar &bull; <b>[SHIFT]</b> Correr<br>
             <b>[CLICK]</b> Vista 3D &bull; <b>[B]</b> Emotes &bull; <b>[E / CLIC]</b> Farmear Aura
@@ -2189,44 +2548,63 @@
         <div class="emote-wheel-box">
           <h3 style="color:#00f0ff;font-size:13px;letter-spacing:1px;margin-bottom:6px;">SELECCIONA UN EMOTE</h3>
           <p style="font-size:8px;color:#a0aabf;">Baila en 3D con música y efectos</p>
-          
+
           <div class="emote-grid" id="emotesGridContainer"></div>
 
-          <button id="closeEmotesModal" class="btn-play" style="background:#334;margin-top:5px;padding:8px;">CERRAR (ESC)</button>
+          <button id="closeEmotesModal" class="btn-play" style="background:#334;margin-top:5px;padding:8px;">CERRAR
+            (ESC)</button>
         </div>
       </div>
 
       <!-- Bocina Music Modal -->
       <div id="bocinaMusicModal">
-        <div class="emote-wheel-box" style="width:490px;max-width:92vw;border-color:#bd00ff;box-shadow:0 0 25px rgba(189,0,255,0.4);">
+        <div class="emote-wheel-box"
+          style="width:490px;max-width:92vw;border-color:#bd00ff;box-shadow:0 0 25px rgba(189,0,255,0.4);">
           <h3 style="color:#e888ff;font-size:13px;letter-spacing:1px;margin-bottom:6px;">📻 REPRODUCTOR DE BOCINA</h3>
-          <p style="font-size:8px;color:#a0aabf;margin-bottom:12px;">Pega un link de audio (GitHub, MP3) y todos lo escucharán en 3D:</p>
-          
+          <p style="font-size:8px;color:#a0aabf;margin-bottom:12px;">Pega un link de audio (GitHub, MP3) y todos lo
+            escucharán en 3D:</p>
+
           <div style="display:flex;gap:6px;margin-bottom:10px;">
-            <input id="speakerMusicInput" type="text" value="https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3" placeholder="https://.../musica.mp3" style="flex:1;background:#090d1c;border:2px solid #bd00ff;border-radius:6px;padding:8px 10px;color:#00ff66;font-size:8px;outline:none;" />
+            <input id="speakerMusicInput" type="text"
+              value="https://github.com/farmearaura/farmearaura.github.io/blob/main/auraphonk.mp3"
+              placeholder="https://.../musica.mp3"
+              style="flex:1;background:#090d1c;border:2px solid #bd00ff;border-radius:6px;padding:8px 10px;color:#00ff66;font-size:8px;outline:none;" />
           </div>
 
           <div style="display:flex;gap:6px;justify-content:center;margin-bottom:12px;flex-wrap:wrap;">
-            <button id="presetAuraPhonkBtn" style="background:rgba(189,0,255,0.25);border:1px solid #bd00ff;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:7px;">⚡ Aura Phonk (GitHub)</button>
+            <button id="presetAuraPhonkBtn"
+              style="background:rgba(189,0,255,0.25);border:1px solid #bd00ff;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:7px;">⚡
+              Aura Phonk (GitHub)</button>
           </div>
 
           <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px;">
-            <button id="playMusicBtn" class="btn-play" style="background:#00cc66;box-shadow:0 4px 0 #007733;padding:9px 14px;font-size:9px;margin:0;width:auto;">▶️ REPRODUCIR</button>
-            <button id="pauseMusicBtn" class="btn-play" style="background:#ff9900;box-shadow:0 4px 0 #995500;padding:9px 14px;font-size:9px;margin:0;width:auto;">⏸️ PAUSAR</button>
-            <button id="stopMusicBtn" class="btn-play" style="background:#ff0055;box-shadow:0 4px 0 #990033;padding:9px 14px;font-size:9px;margin:0;width:auto;">⏹️ DETENER</button>
+            <button id="playMusicBtn" class="btn-play"
+              style="background:#00cc66;box-shadow:0 4px 0 #007733;padding:9px 14px;font-size:9px;margin:0;width:auto;">▶️
+              REPRODUCIR</button>
+            <button id="pauseMusicBtn" class="btn-play"
+              style="background:#ff9900;box-shadow:0 4px 0 #995500;padding:9px 14px;font-size:9px;margin:0;width:auto;">⏸️
+              PAUSAR</button>
+            <button id="stopMusicBtn" class="btn-play"
+              style="background:#ff0055;box-shadow:0 4px 0 #990033;padding:9px 14px;font-size:9px;margin:0;width:auto;">⏹️
+              DETENER</button>
           </div>
 
-          <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(20,25,45,0.7);padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:8px;">
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;background:rgba(20,25,45,0.7);padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:8px;">
             <span style="color:#a0aabf;">VOLUMEN:</span>
-            <input id="speakerVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.7" style="flex:1;margin:0 10px;cursor:pointer;" />
+            <input id="speakerVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.7"
+              style="flex:1;margin:0 10px;cursor:pointer;" />
             <span id="speakerVolumeVal" style="color:#00f0ff;">70%</span>
           </div>
 
-          <div id="musicModalStatus" style="font-size:8px;color:#a0aabf;margin-bottom:10px;padding:6px;background:rgba(0,0,0,0.5);border-radius:6px;">
+          <div id="musicModalStatus"
+            style="font-size:8px;color:#a0aabf;margin-bottom:10px;padding:6px;background:rgba(0,0,0,0.5);border-radius:6px;">
             <span style="color:#ff6666;">⏹️ DETENIDO</span>
           </div>
 
-          <button id="closeMusicModal" class="btn-play" style="background:#2d334d;box-shadow:0 4px 0 #181c2b;margin-top:2px;padding:8px;width:100%;">CERRAR (H / ESC)</button>
+          <button id="closeMusicModal" class="btn-play"
+            style="background:#2d334d;box-shadow:0 4px 0 #181c2b;margin-top:2px;padding:8px;width:100%;">CERRAR (H /
+            ESC)</button>
         </div>
       </div>
     </div>
@@ -2327,7 +2705,7 @@
           osc.start();
           osc.stop(ctx.currentTime + 0.08);
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function playSkinAudio(audioPath) {
@@ -2339,9 +2717,9 @@
       try {
         const audio = new Audio(resolveUrl(audioPath));
         audio.volume = 0.6;
-        audio.play().catch(() => {});
+        audio.play().catch(() => { });
         currentVoiceAudio = audio;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     /* ══ DEFAULT DATA ══ */
@@ -2418,10 +2796,10 @@
           const tx = db.transaction(IDB_STORE, 'readwrite');
           tx.objectStore(IDB_STORE).delete(skinName);
         }
-      } catch (e) {}
+      } catch (e) { }
       try {
         localStorage.setItem('fa_custom_skins', JSON.stringify(customCharacters));
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // 1. Carga inicial rápida desde localStorage
@@ -2457,7 +2835,7 @@
     let rawEmotes = [];
     let selectedChar = characters[0];
     let auraCount = 0;
-    try { localStorage.removeItem('farmear_aura_points'); } catch (e) {}
+    try { localStorage.removeItem('farmear_aura_points'); } catch (e) { }
 
     /* ══ DOM ELEMENTS ══ */
     const startScreen = document.getElementById('start-screen');
@@ -2934,6 +3312,7 @@
 
       localStorage.setItem('zw_skinUrl', char.image || IMG_PLAYER);
       localStorage.setItem('zw_skinName', char.name);
+      renderStartScreenLeaderboard();
     }
 
     function populateGrid(skinList) {
@@ -3191,6 +3570,16 @@
 
     /* ══ SISTEMA MULTIJUGADOR P2P WEBRTC (PEERJS) & MATCHMAKING CON FIREBASE FALLBACK ══ */
     let myPeerId = 'fa_' + Math.random().toString(36).slice(2, 8) + '_' + Date.now().toString(36).slice(-3);
+    let myHostToken = '';
+    try {
+      myHostToken = localStorage.getItem('fa_user_host_token') || '';
+      if (!myHostToken) {
+        myHostToken = 'ht_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now().toString(36);
+        localStorage.setItem('fa_user_host_token', myHostToken);
+      }
+    } catch (e) {
+      myHostToken = 'ht_' + myPeerId;
+    }
     let peer = null;
     let isP2pReady = false;
     let p2pMode = 'none'; // 'host', 'client', 'solo'
@@ -3222,13 +3611,107 @@
     let lastLocalAuraGain = null;
     let lastLocalCritHit = null;
 
-    /* ══ SISTEMA DE VICTORIAS & HALL OF FAME LEADERBOARD ══ */
+    /* ══ GESTIÓN DE NOMBRE DE JUGADOR & LOCALSTORAGE ══ */
+    let customPlayerName = localStorage.getItem('fa_custom_player_name') || '';
+
+    function getCustomPlayerName() {
+      return (customPlayerName && customPlayerName.trim()) ? customPlayerName.trim() : (selectedChar?.name || 'Fighter');
+    }
+
+    function updatePlayerNameDisplay() {
+      const displayEl = document.getElementById('playerNicknameDisplay');
+      if (displayEl) {
+        displayEl.textContent = getCustomPlayerName();
+      }
+      if (hudCharName) {
+        hudCharName.textContent = getCustomPlayerName();
+      }
+      renderStartScreenLeaderboard();
+    }
+
+    /* ══ SISTEMA DE VICTORIAS & HALL OF FAME LEADERBOARD CON DISCORD WEBHOOK ══ */
+    const DISCORD_HOF_WEBHOOK_URL = 'https://discord.com/api/webhooks/1541130619436929204/5_kNRsMaYaeEln84RwKl4plnFWaYfHZ1k1_3fUug7NvpSclO3b0bpBV3wuT7naUgcubi';
     let playerWins = parseInt(localStorage.getItem('fa_player_wins') || '0', 10);
     let globalWinnersData = [];
 
+    async function triggerDiscordHallOfFameWebhook(force = false) {
+      if (!DISCORD_HOF_WEBHOOK_URL || !fbDb) return;
+
+      try {
+        const timeRef = ref(fbDb, 'fps/meta/last_discord_hof_time');
+        const snap = await get(timeRef);
+        const lastSent = (snap && snap.exists()) ? (snap.val() || 0) : 0;
+        const now = Date.now();
+        // Tiempo de espera: 4 minutos (240,000 ms)
+        if (!force && (now - lastSent < 4 * 60 * 1000)) {
+          return;
+        }
+
+        // Marcar en Firebase que se está enviando ahora (evita que otros clientes envíen a la vez)
+        await set(timeRef, now);
+
+        // Agrupar récords válidos por nombre y quedarse con el récord más alto
+        const recordsMap = new Map();
+        if (Array.isArray(globalWinnersData)) {
+          globalWinnersData.forEach(r => {
+            if (r && r.name && (r.wins || 0) > 0) {
+              const prev = recordsMap.get(r.name);
+              if (!prev || prev.wins < r.wins) {
+                recordsMap.set(r.name, r);
+              }
+            }
+          });
+        }
+
+        // Incluir al jugador local si tiene victorias
+        if (playerWins > 0) {
+          const myName = getCustomPlayerName();
+          const prev = recordsMap.get(myName);
+          if (!prev || prev.wins < playerWins) {
+            recordsMap.set(myName, { name: myName, wins: playerWins });
+          }
+        }
+
+        const sorted = Array.from(recordsMap.values()).sort((a, b) => (b.wins || 0) - (a.wins || 0));
+        const top5 = sorted.slice(0, 5);
+        if (top5.length === 0) return;
+
+        const medals = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
+        const descriptionLines = top5.map((p, i) => {
+          const medal = medals[i] || '🎖️';
+          return `${medal} **#${i + 1} ${p.name}** — ⚡ \`${(p.wins || 0).toLocaleString()} Victorias\``;
+        }).join('\n\n');
+
+        const embedPayload = {
+          username: "Farmear Aura 3D - Hall of Fame",
+          avatar_url: "https://raw.githubusercontent.com/yoyoyogogo/png/main/yespis.png",
+          embeds: [
+            {
+              title: "🏆 TOP VICTORIAS • HALL OF FAME GLOBAL",
+              description: `¡Aquí están los campeones supremos del Aura!\n\n${descriptionLines}\n\n👉 **[¡Juega gratis en la Web y entra al Top!](https://farmearaura.github.io/)**`,
+              color: 61695, // #00F0FF (Cyan Neón)
+              footer: {
+                text: "Farmear Aura 3D • Sincronización Automática"
+              },
+              timestamp: new Date().toISOString()
+            }
+          ]
+        };
+
+        await fetch(DISCORD_HOF_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(embedPayload)
+        });
+        console.log('✅ Hall of Fame Webhook enviado exitosamente a Discord');
+      } catch (err) {
+        console.warn('Discord Webhook error:', err);
+      }
+    }
+
     function syncPlayerWinRecord(name, wins, skin) {
       const myRecord = {
-        name: name || 'Fighter',
+        name: getCustomPlayerName(),
         skin: skin || IMG_PLAYER,
         wins: wins,
         updatedAt: Date.now()
@@ -3236,7 +3719,9 @@
 
       if (fbDb && myPeerId) {
         const winRef = ref(fbDb, `fps/leaderboard_wins/${myPeerId}`);
-        set(winRef, myRecord).catch(() => {});
+        set(winRef, myRecord).then(() => {
+          triggerDiscordHallOfFameWebhook(false);
+        }).catch(() => { });
       }
       renderStartScreenLeaderboard();
     }
@@ -3245,7 +3730,7 @@
       const listEl = document.getElementById('startLeaderboardList');
       if (!listEl) return;
 
-      const myName = (selectedChar?.name || 'Tú');
+      const myName = getCustomPlayerName();
       const mySkin = selectedChar?.image || IMG_PLAYER;
 
       const recordsMap = new Map();
@@ -3259,7 +3744,7 @@
         isMe: true
       });
 
-      // Añadir récords globales de Firebase
+      // Añadir únicamente los récords reales sincronizados de Firebase
       if (Array.isArray(globalWinnersData)) {
         globalWinnersData.forEach((rec, idx) => {
           if (rec && rec.name) {
@@ -3277,27 +3762,21 @@
         });
       }
 
-      // Récords de Fighters legendarios para ranking inicial
-      const demoRecords = [
-        { name: 'Brad', skin: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/brad.png', wins: 12 },
-        { name: 'Kratos', skin: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/kratos.png', wins: 8 },
-        { name: 'Goku', skin: 'https://raw.githubusercontent.com/yoyoyogogo/png/main/goku.png', wins: 5 }
-      ];
+      // Ordenar por victorias descendente
+      const sorted = Array.from(recordsMap.values()).sort((a, b) => (b.wins || 0) - (a.wins || 0));
 
-      demoRecords.forEach(d => {
-        if (!recordsMap.has(d.name)) {
-          recordsMap.set(d.name, {
-            name: d.name,
-            skin: d.skin,
-            wins: d.wins,
-            isMe: false
-          });
-        }
-      });
+      const hasAnyWins = sorted.some(p => (p.wins || 0) > 0);
 
-      const sorted = Array.from(recordsMap.values()).sort((a, b) => b.wins - a.wins);
+      if (!hasAnyWins) {
+        listEl.innerHTML = `
+          <div style="font-size:7px;color:#8899aa;text-align:center;padding:16px 8px;line-height:1.6;">
+            🏆 ¡Sé el primero en ganar un duelo de aura en el mundo 3D para liderar el Hall of Fame!
+          </div>
+        `;
+        return;
+      }
 
-      listEl.innerHTML = sorted.slice(0, 8).map((p, idx) => {
+      listEl.innerHTML = sorted.filter(p => (p.wins || 0) > 0 || p.isMe).slice(0, 10).map((p, idx) => {
         const safeName = (p.name || 'Fighter').replace(/</g, '&lt;');
         const rankClass = idx === 0 ? 'r-1' : (idx === 1 ? 'r-2' : (idx === 2 ? 'r-3' : ''));
         const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `#${idx + 1}`));
@@ -3428,7 +3907,7 @@
         triggerCameraShake(0.75, 1200);
 
         // Liberar el puntero del ratón para permitir interactuar con los botones de revivir o salir
-        try { document.exitPointerLock(); } catch (e) {}
+        try { document.exitPointerLock(); } catch (e) { }
 
         // Tumbar al personaje al suelo (Knockdown / Ragdoll)
         if (playerBillboardMesh) {
@@ -3480,7 +3959,7 @@
         set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
           score: 50,
           resetTime: Date.now()
-        }).catch(() => {});
+        }).catch(() => { });
       }
 
       if (p2pMode === 'host') {
@@ -3559,7 +4038,7 @@
         peer.on('disconnected', () => {
           isP2pReady = false;
           updateP2PStatus('P2P: Reconectando...', false);
-          try { peer.reconnect(); } catch (e) {}
+          try { peer.reconnect(); } catch (e) { }
         });
       } catch (e) {
         console.error('Error inicializando PeerJS:', e);
@@ -3569,8 +4048,9 @@
 
     function getLocalPlayerData() {
       return {
-        name: selectedChar.name || 'Fighter',
+        name: getCustomPlayerName(),
         skin: selectedChar.image || IMG_PLAYER,
+        hostToken: myHostToken,
         x: +playerPos.x.toFixed(3),
         y: +(playerPos.y + 1.5).toFixed(3),
         z: +playerPos.z.toFixed(3),
@@ -3607,7 +4087,7 @@
 
       // Sincronización continua en Firebase Relay si el fallback está activo
       if (isFirebaseFallback && fbDb && currentRoomId) {
-        set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`), dataPayload).catch(() => {});
+        set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`), dataPayload).catch(() => { });
       }
 
       if (p2pMode === 'host') {
@@ -3902,9 +4382,9 @@
         if (op.currentSpeakerUrl !== resolvedUrl) {
           op.currentSpeakerUrl = resolvedUrl;
           op.audioEl.src = resolvedUrl;
-          op.audioEl.play().catch(() => {});
+          op.audioEl.play().catch(() => { });
         } else if (op.audioEl.paused) {
-          op.audioEl.play().catch(() => {});
+          op.audioEl.play().catch(() => { });
         }
       } else {
         if (op.currentSpeakerUrl) {
@@ -3945,7 +4425,7 @@
         if (playPromise !== undefined) {
           playPromise.catch(() => {
             op.videoEl.muted = true;
-            op.videoEl.play().catch(() => {});
+            op.videoEl.play().catch(() => { });
           });
         }
         op.mesh.material.map = op.videoTex;
@@ -3993,7 +4473,9 @@
       const fbApp = initializeApp(FB_CONFIG);
       fbDb = getDatabase(fbApp);
 
-      firebaseStatusText.textContent = "Conectando a Firebase...";
+      if (firebaseStatusText) {
+        firebaseStatusText.textContent = "Conectando a Firebase...";
+      }
 
       const skinsRef = ref(fbDb, 'fps/skins');
       onValue(skinsRef, (snap) => {
@@ -4025,14 +4507,14 @@
 
           characters = unique;
           populateGrid(characters);
-          firebaseStatusText.textContent = `✓ Firebase Online (${characters.length} Fighters)`;
+          if (firebaseStatusText) firebaseStatusText.textContent = `✓ Firebase Online (${characters.length} Fighters)`;
         } else {
           characters = [DEFAULT_SKIN, ...customCharacters];
           populateGrid(characters);
-          firebaseStatusText.textContent = "✓ Firebase conectado";
+          if (firebaseStatusText) firebaseStatusText.textContent = "✓ Firebase conectado";
         }
       }, () => {
-        firebaseStatusText.textContent = "Modo Offline (Base)";
+        if (firebaseStatusText) firebaseStatusText.textContent = "Modo Offline (Base)";
         characters = [DEFAULT_SKIN, ...customCharacters];
         populateGrid(characters);
       });
@@ -4052,13 +4534,14 @@
           const val = snap.val() || {};
           globalWinnersData = Object.values(val);
           renderStartScreenLeaderboard();
+          triggerDiscordHallOfFameWebhook(false);
         }
       });
 
       renderStartScreenLeaderboard();
 
     } catch (e) {
-      firebaseStatusText.textContent = "Modo Offline";
+      if (firebaseStatusText) firebaseStatusText.textContent = "Modo Offline";
       populateGrid([DEFAULT_SKIN]);
       renderStartScreenLeaderboard();
     }
@@ -4137,7 +4620,7 @@
       }
 
       emoteVideo.oncanplay = () => {
-        emoteVideo.play().catch(() => {});
+        emoteVideo.play().catch(() => { });
       };
 
       emoteVideo.onended = () => {
@@ -4280,6 +4763,19 @@
         if (packet.type === 'update') {
           const pData = packet.data;
           if (pData) {
+            // ⛔ Anti-Self Join: Desconectar inmediatamente si intenta unirse a su propia sala
+            if ((pData.hostToken && pData.hostToken === myHostToken) ||
+                (pData.name && pData.name.trim().toLowerCase() === getCustomPlayerName().trim().toLowerCase())) {
+              conn.send({ type: 'error', message: '⛔ No puedes unirte a tu propia sala desde otra ventana.' });
+              setTimeout(() => {
+                try { conn.close(); } catch (e) {}
+                delete hostConnections[conn.peer];
+                removeOtherPlayer(conn.peer);
+                updateRoomPlayerCount();
+              }, 200);
+              return;
+            }
+
             if (!otherPlayers[conn.peer]) {
               spawnOtherPlayer(conn.peer, pData);
             } else {
@@ -4315,7 +4811,7 @@
                 winnerName: wName,
                 winnerId: conn.peer,
                 winTime: Date.now()
-              }).catch(() => {});
+              }).catch(() => { });
             }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
@@ -4332,7 +4828,7 @@
                 score: vsClashScore,
                 lastPushBy: conn.peer,
                 time: Date.now()
-              }).catch(() => {});
+              }).catch(() => { });
             }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
@@ -4354,7 +4850,7 @@
             set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
               score: 50,
               resetTime: Date.now()
-            }).catch(() => {});
+            }).catch(() => { });
           }
 
           for (const pid in hostConnections) {
@@ -4413,8 +4909,9 @@
         id: currentRoomId,
         name: serverName.trim() || `${selectedChar.name}'s Arena`,
         hostPeerId: peer.id,
-        hostName: selectedChar.name || 'Fighter',
+        hostName: getCustomPlayerName(),
         hostSkin: selectedChar.image || IMG_PLAYER,
+        hostToken: myHostToken,
         playersCount: 1,
         maxPlayers: parseInt(maxPlayers) || 8,
         useFirebase: false,
@@ -4425,8 +4922,8 @@
       // Registrar sala en Firebase únicamente para descubrimiento (sin tráfico de juego inicial)
       if (fbDb) {
         const roomRef = ref(fbDb, `fps/p2p_servers/${currentRoomId}`);
-        set(roomRef, currentRoomInfo).catch(() => {});
-        onDisconnect(roomRef).remove().catch(() => {});
+        set(roomRef, currentRoomInfo).catch(() => { });
+        onDisconnect(roomRef).remove().catch(() => { });
 
         // Escuchar si algún cliente no puede por P2P y solicita activar Firebase Relay para esta sala
         if (fbRoomFallbackUnsub) fbRoomFallbackUnsub();
@@ -4447,7 +4944,7 @@
               updatedAt: Date.now(),
               playersCount: count,
               useFirebase: isFirebaseFallback
-            }).catch(() => {});
+            }).catch(() => { });
           }
         }, 6000);
       }
@@ -4463,10 +4960,10 @@
 
       if (fbDb && roomId) {
         // 1. Configurar disconnect hook para el host en el canal de sala
-        onDisconnect(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`)).remove().catch(() => {});
+        onDisconnect(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`)).remove().catch(() => { });
 
         // 2. Publicar estado inicial del host en la sala
-        set(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`), getLocalPlayerData()).catch(() => {});
+        set(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`), getLocalPlayerData()).catch(() => { });
 
         // 3. Escuchar jugadores en la sala de Firebase
         if (fbRoomPlayersUnsub) fbRoomPlayersUnsub();
@@ -4510,7 +5007,7 @@
             winnerName: wName,
             winnerId: 'rival',
             winTime: Date.now()
-          }).catch(() => {});
+          }).catch(() => { });
         }
         for (const pid in hostConnections) {
           if (hostConnections[pid]?.open) {
@@ -4523,7 +5020,7 @@
             score: vsClashScore,
             lastPushBy: 'client',
             time: Date.now()
-          }).catch(() => {});
+          }).catch(() => { });
         }
         for (const pid in hostConnections) {
           if (hostConnections[pid]?.open) {
@@ -4569,7 +5066,7 @@
         update(ref(fbDb, `fps/p2p_servers/${currentRoomId}`), {
           playersCount: count,
           updatedAt: Date.now()
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
 
@@ -4611,7 +5108,7 @@
         if (!p2pConnected) {
           console.warn('⚠️ Conexión P2P no completada en 4 segundos (posible NAT estricto). Activando Firebase Relay...');
           if (clientConnection) {
-            try { clientConnection.close(); } catch (e) {}
+            try { clientConnection.close(); } catch (e) { }
             clientConnection = null;
           }
           startFirebaseFallbackClient(currentRoomId, hostPeerId, serverName);
@@ -4771,13 +5268,13 @@
       update(ref(fbDb, `fps/p2p_servers/${roomId}`), {
         useFirebase: true,
         fallbackTriggered: Date.now()
-      }).catch(() => {});
+      }).catch(() => { });
 
       // Registrar presencia en la sala con eliminación automática al desconectar
-      onDisconnect(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`)).remove().catch(() => {});
+      onDisconnect(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`)).remove().catch(() => { });
 
       // Publicar estado inicial
-      set(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`), getLocalPlayerData()).catch(() => {});
+      set(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`), getLocalPlayerData()).catch(() => { });
 
       // Escuchar jugadores en la sala
       if (fbRoomPlayersUnsub) fbRoomPlayersUnsub();
@@ -4821,7 +5318,7 @@
       isFirebaseFallback = false;
       currentRoomInfo = {
         name: 'Modo Práctica Solo',
-        hostName: selectedChar.name,
+        hostName: getCustomPlayerName(),
         playersCount: 1,
         maxPlayers: 1
       };
@@ -4862,7 +5359,7 @@
       serversScreen.classList.add('hidden');
       gameContainer.style.display = 'block';
 
-      hudCharName.textContent = selectedChar.name;
+      hudCharName.textContent = getCustomPlayerName();
       renderAvatar(selectedChar, hudCharAvatar);
 
       start3DGame();
@@ -4882,10 +5379,10 @@
 
       // Limpiar presencia en Firebase
       if (fbDb && currentRoomId) {
-        remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`)).catch(() => {});
+        remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`)).catch(() => { });
         if (p2pMode === 'host') {
-          remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}`)).catch(() => {});
-          remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => {});
+          remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}`)).catch(() => { });
+          remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => { });
         }
       }
 
@@ -4921,7 +5418,7 @@
           try {
             hostConnections[pid].send({ type: 'error', message: 'El anfitrión ha cerrado el servidor.' });
             hostConnections[pid].close();
-          } catch (e) {}
+          } catch (e) { }
         }
         hostConnections = {};
       } else if (p2pMode === 'client') {
@@ -4930,7 +5427,7 @@
           pingCheckInterval = null;
         }
         if (clientConnection) {
-          try { clientConnection.close(); } catch (e) {}
+          try { clientConnection.close(); } catch (e) { }
           clientConnection = null;
         }
       }
@@ -4999,7 +5496,9 @@
         }
 
         serversListContainer.innerHTML = activeRooms.map(room => {
-          const isMyOwn = (room.hostPeerId === myPeerId);
+          const isMyOwn = (room.hostPeerId === myPeerId) ||
+                          (room.hostToken && room.hostToken === myHostToken) ||
+                          (room.hostName && room.hostName.trim().toLowerCase() === getCustomPlayerName().trim().toLowerCase());
           const isFull = (room.playersCount || 1) >= (room.maxPlayers || 8);
           const safeName = (room.name || 'Sala de Aura').replace(/</g, '&lt;');
           const safeHost = (room.hostName || 'Anfitrión').replace(/</g, '&lt;');
@@ -5022,11 +5521,11 @@
               </div>
               <div>
                 ${isMyOwn ? `
-                  <button class="btn-join-server" style="background:#ff9900;color:#000;" disabled>TUYA</button>
+                  <button class="btn-join-server" style="background:#ff9900;color:#000;cursor:not-allowed;" disabled>TU SALA</button>
                 ` : isFull ? `
                   <button class="btn-join-server" style="background:#555;color:#aaa;cursor:not-allowed;" disabled>LLENO</button>
                 ` : `
-                  <button class="btn-join-server" data-host="${room.hostPeerId}" data-name="${safeName}" data-roomid="${room.id || ''}">ENTRAR ▶</button>
+                  <button class="btn-join-server" data-host="${room.hostPeerId}" data-name="${safeName}" data-roomid="${room.id || ''}" data-hosttoken="${room.hostToken || ''}" data-hostname="${safeHost}">ENTRAR ▶</button>
                 `}
               </div>
             </div>
@@ -5039,6 +5538,14 @@
             const hostId = btn.getAttribute('data-host');
             const rName = btn.getAttribute('data-name');
             const rId = btn.getAttribute('data-roomid');
+            const hToken = btn.getAttribute('data-hosttoken') || '';
+            const hName = btn.getAttribute('data-hostname') || '';
+
+            if (hostId === myPeerId || (hToken && hToken === myHostToken) || (hName.trim().toLowerCase() === getCustomPlayerName().trim().toLowerCase())) {
+              alert('⛔ No puedes unirte a tu propia sala.');
+              return;
+            }
+
             playSound('select');
             joinP2PServer(hostId, rName, rId);
           });
@@ -5046,18 +5553,106 @@
       });
     }
 
+    /* ══ MODAL DE NOMBRE DE JUGADOR & FLUJO DE INICIO ══ */
+    const playerNameModal = document.getElementById('playerNameModal');
+    const inputPlayerName = document.getElementById('inputPlayerName');
+    const btnConfirmPlayerName = document.getElementById('btnConfirmPlayerName');
+    const btnCancelPlayerName = document.getElementById('btnCancelPlayerName');
+    const btnOpenNameModal = document.getElementById('btnOpenNameModal');
+    const playerNicknameBadge = document.getElementById('playerNicknameBadge');
+    let isNameModalFromStart = false;
+
+    function openPlayerNameModal(fromStart = false) {
+      isNameModalFromStart = fromStart;
+      if (!playerNameModal || !inputPlayerName) return;
+
+      inputPlayerName.value = customPlayerName || '';
+      if (btnCancelPlayerName) {
+        btnCancelPlayerName.style.display = (fromStart && !customPlayerName) ? 'none' : 'block';
+      }
+      playerNameModal.classList.add('active');
+      setTimeout(() => inputPlayerName.focus(), 80);
+    }
+
+    function closePlayerNameModal() {
+      if (playerNameModal) playerNameModal.classList.remove('active');
+    }
+
+    if (btnOpenNameModal) {
+      btnOpenNameModal.addEventListener('click', (e) => {
+        e.stopPropagation();
+        playSound('select');
+        openPlayerNameModal(false);
+      });
+    }
+
+    if (playerNicknameBadge) {
+      playerNicknameBadge.addEventListener('click', () => {
+        playSound('select');
+        openPlayerNameModal(false);
+      });
+    }
+
+    if (btnConfirmPlayerName && inputPlayerName) {
+      btnConfirmPlayerName.addEventListener('click', () => {
+        const val = inputPlayerName.value.trim();
+        if (!val) {
+          alert('Por favor introduce un nombre válido.');
+          return;
+        }
+        customPlayerName = val;
+        localStorage.setItem('fa_custom_player_name', customPlayerName);
+        playSound('select');
+        updatePlayerNameDisplay();
+        closePlayerNameModal();
+
+        if (isNameModalFromStart) {
+          startScreen.classList.add('hidden');
+          selectScreen.classList.remove('hidden');
+          initPeerJS();
+        }
+      });
+
+      inputPlayerName.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          btnConfirmPlayerName.click();
+        }
+      });
+    }
+
+    if (btnCancelPlayerName) {
+      btnCancelPlayerName.addEventListener('click', () => {
+        playSound('hover');
+        closePlayerNameModal();
+      });
+    }
+
+    // Inicializar visualización del nombre
+    updatePlayerNameDisplay();
+
     /* ══ MENU TRANSITIONS & BUTTON EVENTS ══ */
+    const btnDiscord = document.getElementById('btnDiscord');
+    if (btnDiscord) {
+      btnDiscord.addEventListener('mouseenter', () => playSound('hover'));
+      btnDiscord.addEventListener('click', () => playSound('select'));
+    }
+
     startBtn.addEventListener('click', () => {
       playSound('select');
-      startScreen.classList.add('hidden');
-      selectScreen.classList.remove('hidden');
-      initPeerJS();
+      if (!customPlayerName || !customPlayerName.trim()) {
+        openPlayerNameModal(true);
+      } else {
+        startScreen.classList.add('hidden');
+        selectScreen.classList.remove('hidden');
+        initPeerJS();
+      }
     });
 
     backToStartBtn.addEventListener('click', () => {
       playSound('hover');
       selectScreen.classList.add('hidden');
       startScreen.classList.remove('hidden');
+      updatePlayerNameDisplay();
     });
 
     playBtn.addEventListener('click', () => {
@@ -5118,6 +5713,10 @@
       const code = inputDirectHostId.value.trim();
       if (!code) {
         alert('Por favor introduce el código o Peer ID del anfitrión.');
+        return;
+      }
+      if (code === myPeerId || (peer && code === peer.id) || (currentRoomId && code === currentRoomId)) {
+        alert('⛔ No puedes unirte a tu propia sala.');
         return;
       }
       playSound('select');
@@ -5412,8 +6011,8 @@
         if (!emoteWheelModal.classList.contains('active') && !bocinaMusicModal.classList.contains('active')) {
           try {
             const p = canvas.requestPointerLock();
-            if (p && typeof p.catch === 'function') p.catch(() => {});
-          } catch (e) {}
+            if (p && typeof p.catch === 'function') p.catch(() => { });
+          } catch (e) { }
         }
       });
 
@@ -5627,16 +6226,24 @@
       updateFloatingAura3D(now, dt);
       updateLeaderboard(now);
 
-      // Generación pasiva de aura con la bocina de música activa (cada 3.5s)
-      if (isSpeakerEquipped && isSpeakerAudioPlaying) {
-        if (!window._lastSpeakerAuraTime || now - window._lastSpeakerAuraTime > 3500) {
-          window._lastSpeakerAuraTime = now;
-          const passiveGain = 40 + Math.floor(Math.random() * 5) * 15; // 40, 55, 70, 85, 100
-          auraCount += passiveGain;
+      // Generación pasiva continua de aura con la bocina activa O mientras el personaje está bailando (cada 0.75s)
+      if ((isSpeakerEquipped && isSpeakerAudioPlaying) || isEmotePlaying) {
+        if (!window._lastPassiveAuraTime || now - window._lastPassiveAuraTime > 750) {
+          window._lastPassiveAuraTime = now;
+          const isCrit = Math.random() < 0.15;
+          let gain = 180 + Math.floor(Math.random() * 8) * 45; // 180 a 495
+          if (isCrit) {
+            gain = Math.floor(gain * 2.0);
+          }
+          auraCount += gain;
           hudAuraVal.textContent = auraCount.toLocaleString();
-          const pText = `+${passiveGain} AURA ⚡`;
-          lastLocalAuraGain = { text: pText, time: Date.now() };
-          spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, pText, '#00ff66');
+
+          const text = isCrit ? `💥 +${gain} AURA ⚡` : `+${gain} AURA ⚡`;
+          const textColor = isCrit ? '#ff0055' : '#ffe600';
+          lastLocalAuraGain = { text: text, time: Date.now() };
+
+          spawnFloatingAura(text, isCrit);
+          spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, text, textColor);
           maybePublish(true);
         }
       }
@@ -6197,9 +6804,9 @@
           const dist = playerPos.distanceTo(op.group.position);
           if (dist <= 4.8) {
             const rivalAuraActive = !!(op.auraRingMesh && op.auraRingMesh.visible) ||
-                                    !!(op.videoEl && op.currentEmoteVideo && !op.videoEl.paused) ||
-                                    !!op.data?.hasAuraRing ||
-                                    !!op.data?.activeEmote;
+              !!(op.videoEl && op.currentEmoteVideo && !op.videoEl.paused) ||
+              !!op.data?.hasAuraRing ||
+              !!op.data?.activeEmote;
 
             // El Duelo VS solo se activa si hay cercanía (< 4.8m) Y al menos uno tiene el aura o círculo invocado/activo
             if (myAuraActive || rivalAuraActive) {
@@ -6224,7 +6831,7 @@
       const list = [];
       list.push({
         id: myPeerId,
-        name: selectedChar.name || 'Tú',
+        name: getCustomPlayerName(),
         skin: selectedChar.image || IMG_PLAYER,
         aura: auraCount,
         wins: playerWins,
@@ -6253,7 +6860,7 @@
 
       if (nearbyOpponent) {
         // ── ESTADO PVP: ¡HAY UN RIVAL DENTRO DE TU CÍRCULO (< 4.8m)! MOSTRAR EN EL CENTRO ARRIBA ──
-        const p1Name = (selectedChar.name || 'Tú').replace(/</g, '&lt;');
+        const p1Name = getCustomPlayerName().replace(/</g, '&lt;');
         const p2Name = (nearbyOpponent.op.data?.name || 'Rival').replace(/</g, '&lt;');
         const p1Skin = selectedChar.image || IMG_PLAYER;
         const p2Skin = nearbyOpponent.op.data?.skin || IMG_PLAYER;
@@ -6352,7 +6959,7 @@
       setTimeout(() => node.mesh.scale.set(1, 1, 1), 180);
 
       spawnBigAuraRing(node.pos.x, node.pos.z, node.pos.c);
-      
+
       const nodeText = `+${bonus} AURA ⚡`;
       lastLocalAuraGain = { text: nodeText, time: Date.now() };
       spawnFloatingAura(nodeText);
@@ -6404,7 +7011,7 @@
     function doFarmAura() {
       if (!isClashActive) return; // Bloquear farmeo mientras se muestra la pantalla de victoria o WASTED
       playSound('farm');
-      
+
       // Ganancia dinámica variable de aura con probabilidad de golpe crítico (15%)
       const isCrit = Math.random() < 0.15;
       let gain = 100 + Math.floor(Math.random() * 8) * 25; // 100, 125, 150, 175, 200, 225, 250, 275
@@ -6428,7 +7035,7 @@
           vsClashScore = Math.min(100, vsClashScore + pushPower);
 
           if (vsClashScore >= 100) {
-            const wName = selectedChar.name || 'Tú';
+            const wName = getCustomPlayerName();
             handleClashVictory(wName, true);
             if (isFirebaseFallback && fbDb && currentRoomId) {
               set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
@@ -6436,7 +7043,7 @@
                 winnerName: wName,
                 winnerId: myPeerId,
                 winTime: Date.now()
-              }).catch(() => {});
+              }).catch(() => { });
             }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
@@ -6453,7 +7060,7 @@
                 score: vsClashScore,
                 lastPushBy: myPeerId,
                 time: Date.now()
-              }).catch(() => {});
+              }).catch(() => { });
             }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
@@ -6470,14 +7077,14 @@
           if (isFirebaseFallback && fbDb && currentRoomId) {
             set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash_push/${myPeerId}`), {
               push: pushPower,
-              senderName: selectedChar.name,
+              senderName: getCustomPlayerName(),
               time: Date.now()
-            }).catch(() => {});
+            }).catch(() => { });
           }
           if (clientConnection && clientConnection.open) {
             clientConnection.send({
               type: 'clash_push',
-              senderName: selectedChar.name,
+              senderName: getCustomPlayerName(),
               push: pushPower
             });
           }
@@ -6531,4 +7138,5 @@
     }
   </script>
 </body>
+
 </html>
