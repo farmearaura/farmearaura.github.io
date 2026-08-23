@@ -6575,18 +6575,21 @@
       }
 
       // Limpiar listeners de Firebase de sala
-      if (fbRoomPlayersUnsub) { fbRoomPlayersUnsub(); fbRoomPlayersUnsub = null; }
-      if (fbRoomClashUnsub) { fbRoomClashUnsub(); fbRoomClashUnsub = null; }
-      if (fbRoomFallbackUnsub) { fbRoomFallbackUnsub(); fbRoomFallbackUnsub = null; }
-      if (fbRoomClashPushUnsub) { fbRoomClashPushUnsub(); fbRoomClashPushUnsub = null; }
+      try { if (fbRoomPlayersUnsub) fbRoomPlayersUnsub(); } catch(e) {}
+      try { if (fbRoomClashUnsub) fbRoomClashUnsub(); } catch(e) {}
+      try { if (fbRoomFallbackUnsub) fbRoomFallbackUnsub(); } catch(e) {}
+      try { if (fbRoomClashPushUnsub) fbRoomClashPushUnsub(); } catch(e) {}
+      fbRoomPlayersUnsub = fbRoomClashUnsub = fbRoomFallbackUnsub = fbRoomClashPushUnsub = null;
 
       // Limpiar presencia en Firebase
       if (fbDb && currentRoomId) {
-        remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`)).catch(() => { });
-        if (p2pMode === 'host') {
-          remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}`)).catch(() => { });
-          remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => { });
-        }
+        try {
+          remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`)).catch(() => { });
+          if (p2pMode === 'host') {
+            remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}`)).catch(() => { });
+            remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => { });
+          }
+        } catch(e) {}
       }
 
       // Limpiar y resetear estados de muerte y cinemática
@@ -6599,9 +6602,7 @@
       if (wastedOverlay) wastedOverlay.classList.remove('active');
       if (popup) popup.classList.remove('active');
 
-      if (hudFarmOrb) {
-        hudFarmOrb.classList.remove('disabled');
-      }
+      if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
 
       if (playerBillboardMesh) {
         playerBillboardMesh.rotation.z = 0;
@@ -6638,16 +6639,17 @@
       p2pMode = 'none';
       isFirebaseFallback = false;
       currentRoomId = null;
-      cleanupAllOtherPlayers();
+
+      try { pauseSpeakerAudio(); } catch(e) {}
+      try { stopEmoteIn3D(); } catch(e) {}
+      try { stop3DGame(); } catch(e) {}
+      try { if (document.exitPointerLock) document.exitPointerLock(); } catch(e) {}
 
       auraCount = 0;
       if (hudAuraVal) hudAuraVal.textContent = '0';
       lastLocalAuraGain = null;
       lastLocalCritHit = null;
 
-      stopEmoteIn3D();
-      stop3DGame();
-      document.exitPointerLock();
       gameContainer.style.display = 'none';
       serversScreen.classList.remove('hidden');
       listenForP2PServers();
@@ -6936,6 +6938,13 @@
       playSound('hover');
       leaveCurrentP2PServer();
     });
+
+    exit3dBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      playSound('hover');
+      leaveCurrentP2PServer();
+    }, { passive: false });
 
     openEmoteBtn.addEventListener('click', () => {
       playSound('select');
@@ -7886,7 +7895,8 @@
       // Asignar volúmenes con prioridad total a la bocina sobre los emotes
       activeAudioSources.forEach((src, idx) => {
         if (src.dist > src.maxDist) {
-          src.el.volume = 0;
+          try { src.el.volume = 0; } catch (e) { }
+          src.el.muted = true;
           return;
         }
 
@@ -7910,8 +7920,18 @@
         }
 
         const targetVol = Math.max(0, Math.min(1.0, src.baseVol * distFactor * rankFactor));
-        const currentVol = src.el.volume || 0;
-        src.el.volume = currentVol + (targetVol - currentVol) * 0.25;
+
+        // Para iOS WebKit: si el volumen calculado es casi nulo, silenciar explícitamente
+        if (targetVol < 0.015) {
+          src.el.muted = true;
+        } else {
+          src.el.muted = false;
+        }
+
+        try {
+          const currentVol = src.el.volume || 0;
+          src.el.volume = currentVol + (targetVol - currentVol) * 0.25;
+        } catch (e) { }
       });
     }
 
