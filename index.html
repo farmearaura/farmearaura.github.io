@@ -3189,11 +3189,12 @@
       );
     }
 
-    /* ══ SISTEMA MULTIJUGADOR P2P WEBRTC (PEERJS) & MATCHMAKING ══ */
+    /* ══ SISTEMA MULTIJUGADOR P2P WEBRTC (PEERJS) & MATCHMAKING CON FIREBASE FALLBACK ══ */
     let myPeerId = 'fa_' + Math.random().toString(36).slice(2, 8) + '_' + Date.now().toString(36).slice(-3);
     let peer = null;
     let isP2pReady = false;
     let p2pMode = 'none'; // 'host', 'client', 'solo'
+    let isFirebaseFallback = false; // Flag para activar modo Firebase Relay bajo demanda
     let hostConnections = {}; // Si soy Host: { [clientPeerId]: dataConnection }
     let clientConnection = null; // Si soy Cliente: dataConnection con el Host
     let currentRoomId = null;
@@ -3201,6 +3202,13 @@
     let roomHeartbeatInterval = null;
     let pingCheckInterval = null;
     let p2pPing = 0;
+    let p2pConnectTimer = null; // Temporizador de 4 segundos para fallback
+
+    // Unsubscribers para canales de Firebase por sala
+    let fbRoomPlayersUnsub = null;
+    let fbRoomClashUnsub = null;
+    let fbRoomFallbackUnsub = null;
+    let fbRoomClashPushUnsub = null;
 
     // Duelo de Clics / Tug-of-War Click Battle
     let vsClashScore = 50; // 0 a 100 (50 = Centro)
@@ -3467,7 +3475,14 @@
       spawnFloatingAura('⚡ ¡HAS REAPARECIDO!');
       spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, '⚡ REAPARECIDO', '#00ff66');
 
-      // Notificar reinicio de duelo al multijugador P2P
+      // Notificar reinicio de duelo al multijugador P2P y Firebase
+      if (isFirebaseFallback && fbDb && currentRoomId) {
+        set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+          score: 50,
+          resetTime: Date.now()
+        }).catch(() => {});
+      }
+
       if (p2pMode === 'host') {
         for (const pid in hostConnections) {
           if (hostConnections[pid]?.open) {
@@ -3590,6 +3605,11 @@
       if (!is3dRunning) return;
       const dataPayload = getLocalPlayerData();
 
+      // Sincronización continua en Firebase Relay si el fallback está activo
+      if (isFirebaseFallback && fbDb && currentRoomId) {
+        set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`), dataPayload).catch(() => {});
+      }
+
       if (p2pMode === 'host') {
         // Enviar a todos los clientes conectados directamente por WebRTC DataChannel
         const packet = {
@@ -3604,7 +3624,7 @@
           }
         }
       } else if (p2pMode === 'client') {
-        // Enviar al Host directamente
+        // Enviar al Host directamente si hay conexión WebRTC abierta
         if (clientConnection && clientConnection.open) {
           clientConnection.send({
             type: 'update',
@@ -4220,7 +4240,7 @@
 
     updateCrtDisplay();
 
-    /* ══ P2P HOST & CLIENT NETWORKING HANDLERS ══ */
+    /* ══ P2P HOST & CLIENT NETWORKING HANDLERS CON FIREBASE FALLBACK ══ */
 
     function handleIncomingHostConnection(conn) {
       conn.on('open', () => {
@@ -4266,7 +4286,7 @@
               updateOtherPlayerData(conn.peer, pData);
             }
 
-            // Retransmitir (Relay) a todos los demás clientes conectados
+            // Retransmitir (Relay) a todos los demás clientes conectados por P2P
             for (const otherPid in hostConnections) {
               if (otherPid !== conn.peer) {
                 const c = hostConnections[otherPid];
@@ -4289,6 +4309,14 @@
           if (vsClashScore <= 0) {
             const wName = packet.senderName || 'Rival';
             handleClashVictory(wName, false);
+            if (isFirebaseFallback && fbDb && currentRoomId) {
+              set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+                score: 0,
+                winnerName: wName,
+                winnerId: conn.peer,
+                winTime: Date.now()
+              }).catch(() => {});
+            }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
                 hostConnections[pid].send({
@@ -4299,6 +4327,13 @@
               }
             }
           } else {
+            if (isFirebaseFallback && fbDb && currentRoomId) {
+              set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+                score: vsClashScore,
+                lastPushBy: conn.peer,
+                time: Date.now()
+              }).catch(() => {});
+            }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
                 hostConnections[pid].send({
@@ -4314,6 +4349,13 @@
           const popup = document.getElementById('vsVictoryPopup');
           if (popup) popup.classList.remove('active');
           if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+
+          if (isFirebaseFallback && fbDb && currentRoomId) {
+            set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+              score: 50,
+              resetTime: Date.now()
+            }).catch(() => {});
+          }
 
           for (const pid in hostConnections) {
             if (hostConnections[pid]?.open) {
@@ -4365,6 +4407,7 @@
       }
 
       p2pMode = 'host';
+      isFirebaseFallback = false;
       currentRoomId = 'room_' + Math.random().toString(36).slice(2, 9);
       currentRoomInfo = {
         id: currentRoomId,
@@ -4374,22 +4417,36 @@
         hostSkin: selectedChar.image || IMG_PLAYER,
         playersCount: 1,
         maxPlayers: parseInt(maxPlayers) || 8,
+        useFirebase: false,
         createdAt: Date.now(),
         updatedAt: Date.now()
       };
 
-      // Registrar sala en Firebase únicamente para descubrimiento (sin tráfico de juego)
+      // Registrar sala en Firebase únicamente para descubrimiento (sin tráfico de juego inicial)
       if (fbDb) {
         const roomRef = ref(fbDb, `fps/p2p_servers/${currentRoomId}`);
         set(roomRef, currentRoomInfo).catch(() => {});
         onDisconnect(roomRef).remove().catch(() => {});
 
+        // Escuchar si algún cliente no puede por P2P y solicita activar Firebase Relay para esta sala
+        if (fbRoomFallbackUnsub) fbRoomFallbackUnsub();
+        fbRoomFallbackUnsub = onValue(ref(fbDb, `fps/p2p_servers/${currentRoomId}/useFirebase`), (snap) => {
+          if (snap.val() === true && !isFirebaseFallback && p2pMode === 'host') {
+            console.log('Un cliente solicitó Fallback a Firebase Relay. Encendiendo canal de Firebase para el host...');
+            startFirebaseHostSync(currentRoomId);
+          }
+        });
+
         if (roomHeartbeatInterval) clearInterval(roomHeartbeatInterval);
         roomHeartbeatInterval = setInterval(() => {
           if (p2pMode === 'host' && is3dRunning) {
+            const count = isFirebaseFallback
+              ? (Object.keys(otherPlayers).length + 1)
+              : (Object.keys(hostConnections).length + 1);
             update(ref(fbDb, `fps/p2p_servers/${currentRoomId}`), {
               updatedAt: Date.now(),
-              playersCount: Object.keys(hostConnections).length + 1
+              playersCount: count,
+              useFirebase: isFirebaseFallback
             }).catch(() => {});
           }
         }, 6000);
@@ -4400,8 +4457,111 @@
       spawnFloatingAura('👑 ¡ERES EL ANFITRIÓN P2P!');
     }
 
+    function startFirebaseHostSync(roomId) {
+      if (isFirebaseFallback) return;
+      isFirebaseFallback = true;
+
+      if (fbDb && roomId) {
+        // 1. Configurar disconnect hook para el host en el canal de sala
+        onDisconnect(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`)).remove().catch(() => {});
+
+        // 2. Publicar estado inicial del host en la sala
+        set(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`), getLocalPlayerData()).catch(() => {});
+
+        // 3. Escuchar jugadores en la sala de Firebase
+        if (fbRoomPlayersUnsub) fbRoomPlayersUnsub();
+        fbRoomPlayersUnsub = onValue(ref(fbDb, `fps/rooms_fb/${roomId}/players`), (snap) => {
+          if (!is3dRunning) return;
+          syncFirebasePlayers(snap.val() || {});
+        });
+
+        // 4. Escuchar empujes de duelo enviados por clientes de Firebase
+        if (fbRoomClashPushUnsub) fbRoomClashPushUnsub();
+        fbRoomClashPushUnsub = onValue(ref(fbDb, `fps/rooms_fb/${roomId}/clash_push`), (snap) => {
+          if (!is3dRunning || !isClashActive) return;
+          const pushes = snap.val() || {};
+          for (const senderId in pushes) {
+            const p = pushes[senderId];
+            if (p && p.time && p.time > (window._lastFbPushTime || 0)) {
+              window._lastFbPushTime = p.time;
+              if (senderId !== myPeerId) {
+                handleFirebaseIncomingClashPush(p);
+              }
+            }
+          }
+        });
+
+        updateHudServerInfo();
+        spawnFloatingAura('🔥 FIREBASE RELAY ACTIVADO (ON-DEMAND)');
+      }
+    }
+
+    function handleFirebaseIncomingClashPush(packet) {
+      if (!isClashActive) return;
+      const push = packet.push || 2.8;
+      vsClashScore = Math.max(0, vsClashScore - push);
+
+      if (vsClashScore <= 0) {
+        const wName = packet.senderName || 'Rival';
+        handleClashVictory(wName, false);
+        if (fbDb && currentRoomId) {
+          set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+            score: 0,
+            winnerName: wName,
+            winnerId: 'rival',
+            winTime: Date.now()
+          }).catch(() => {});
+        }
+        for (const pid in hostConnections) {
+          if (hostConnections[pid]?.open) {
+            hostConnections[pid].send({ type: 'clash_win', winnerName: wName, winnerId: 'rival' });
+          }
+        }
+      } else {
+        if (fbDb && currentRoomId) {
+          set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+            score: vsClashScore,
+            lastPushBy: 'client',
+            time: Date.now()
+          }).catch(() => {});
+        }
+        for (const pid in hostConnections) {
+          if (hostConnections[pid]?.open) {
+            hostConnections[pid].send({ type: 'clash_update', score: vsClashScore });
+          }
+        }
+      }
+    }
+
+    function syncFirebasePlayers(playersData) {
+      const currentRemoteIds = new Set(Object.keys(playersData).filter(id => id !== myPeerId));
+
+      // Eliminar jugadores que ya no están en la sala
+      for (const id in otherPlayers) {
+        if (!currentRemoteIds.has(id)) {
+          removeOtherPlayer(id);
+        }
+      }
+
+      // Actualizar o crear jugadores
+      for (const id of currentRemoteIds) {
+        const pData = playersData[id];
+        if (pData) {
+          if (!otherPlayers[id]) {
+            spawnOtherPlayer(id, pData);
+          } else {
+            updateOtherPlayerData(id, pData);
+          }
+        }
+      }
+
+      updateHudServerInfo();
+    }
+
     function updateRoomPlayerCount() {
-      const count = Object.keys(hostConnections).length + 1;
+      const count = isFirebaseFallback
+        ? (Object.keys(otherPlayers).length + 1)
+        : (Object.keys(hostConnections).length + 1);
       currentRoomInfo.playersCount = count;
       updateHudServerInfo();
 
@@ -4413,7 +4573,7 @@
       }
     }
 
-    function joinP2PServer(hostPeerId, serverName = 'Sala P2P') {
+    function joinP2PServer(hostPeerId, serverName = 'Sala P2P', roomId = null) {
       if (!isP2pReady || !peer || !peer.id) {
         initPeerJS();
         alert('Conectando a la red P2P... Intenta de nuevo en 2 segundos.');
@@ -4425,28 +4585,56 @@
         return;
       }
 
+      if (p2pConnectTimer) {
+        clearTimeout(p2pConnectTimer);
+        p2pConnectTimer = null;
+      }
+
       p2pMode = 'client';
+      isFirebaseFallback = false;
+      currentRoomId = roomId || ('room_' + hostPeerId.slice(-7));
       currentRoomInfo = {
+        id: currentRoomId,
         name: serverName || 'Sala P2P',
+        hostPeerId: hostPeerId,
         hostName: 'Host',
         playersCount: 2,
         maxPlayers: 8
       };
 
-      updateP2PStatus('P2P: Conectando al Host...', false);
+      updateP2PStatus('P2P: Conectando (4s)...', false);
 
-      // Conexión WebRTC directa de ultra-baja latencia
-      clientConnection = peer.connect(hostPeerId, { reliable: false });
+      let p2pConnected = false;
 
-      const joinTimeout = setTimeout(() => {
-        if (clientConnection && !clientConnection.open) {
-          alert('No se pudo conectar al servidor P2P. El anfitrión podría haberse desconectado.');
-          leaveCurrentP2PServer();
+      // Temporizador de 4 segundos: si no conecta por P2P (WebRTC), activar fallback a Firebase automáticamente
+      p2pConnectTimer = setTimeout(() => {
+        if (!p2pConnected) {
+          console.warn('⚠️ Conexión P2P no completada en 4 segundos (posible NAT estricto). Activando Firebase Relay...');
+          if (clientConnection) {
+            try { clientConnection.close(); } catch (e) {}
+            clientConnection = null;
+          }
+          startFirebaseFallbackClient(currentRoomId, hostPeerId, serverName);
         }
-      }, 9000);
+      }, 4000);
+
+      // Intentar conexión WebRTC directa primero
+      try {
+        clientConnection = peer.connect(hostPeerId, { reliable: false });
+      } catch (e) {
+        console.warn('Error al iniciar peer.connect:', e);
+        clearTimeout(p2pConnectTimer);
+        startFirebaseFallbackClient(currentRoomId, hostPeerId, serverName);
+        return;
+      }
 
       clientConnection.on('open', () => {
-        clearTimeout(joinTimeout);
+        p2pConnected = true;
+        if (p2pConnectTimer) {
+          clearTimeout(p2pConnectTimer);
+          p2pConnectTimer = null;
+        }
+        isFirebaseFallback = false;
         updateP2PStatus('🟢 P2P Conectado al Host', true);
         console.log('Conexión P2P exitosa con host:', hostPeerId);
 
@@ -4532,7 +4720,7 @@
       });
 
       clientConnection.on('close', () => {
-        if (is3dRunning) {
+        if (is3dRunning && !isFirebaseFallback) {
           alert('El anfitrión ha cerrado el servidor o se perdió la conexión P2P.');
           leaveCurrentP2PServer();
         }
@@ -4540,15 +4728,97 @@
 
       clientConnection.on('error', (err) => {
         console.warn('Error de conexión P2P del cliente:', err);
-        if (is3dRunning) {
+        if (!p2pConnected && !is3dRunning) {
+          if (p2pConnectTimer) {
+            clearTimeout(p2pConnectTimer);
+            p2pConnectTimer = null;
+          }
+          startFirebaseFallbackClient(currentRoomId, hostPeerId, serverName);
+        } else if (is3dRunning && !isFirebaseFallback) {
           alert('Error en la conexión con el servidor P2P.');
           leaveCurrentP2PServer();
         }
       });
     }
 
+    function startFirebaseFallbackClient(roomId, hostPeerId, serverName) {
+      if (p2pConnectTimer) {
+        clearTimeout(p2pConnectTimer);
+        p2pConnectTimer = null;
+      }
+
+      isFirebaseFallback = true;
+      p2pMode = 'client';
+      currentRoomId = roomId;
+      currentRoomInfo = {
+        id: roomId,
+        name: serverName || 'Sala Firebase Relay',
+        hostPeerId: hostPeerId,
+        hostName: 'Host',
+        playersCount: 2,
+        maxPlayers: 8
+      };
+
+      updateP2PStatus('🔥 Conectando por Firebase Relay...', true);
+
+      if (!fbDb) {
+        alert('No se pudo conectar vía P2P y Firebase no está disponible.');
+        leaveCurrentP2PServer();
+        return;
+      }
+
+      // Notificar en la sala de Firebase que se requiere Relay
+      update(ref(fbDb, `fps/p2p_servers/${roomId}`), {
+        useFirebase: true,
+        fallbackTriggered: Date.now()
+      }).catch(() => {});
+
+      // Registrar presencia en la sala con eliminación automática al desconectar
+      onDisconnect(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`)).remove().catch(() => {});
+
+      // Publicar estado inicial
+      set(ref(fbDb, `fps/rooms_fb/${roomId}/players/${myPeerId}`), getLocalPlayerData()).catch(() => {});
+
+      // Escuchar jugadores en la sala
+      if (fbRoomPlayersUnsub) fbRoomPlayersUnsub();
+      fbRoomPlayersUnsub = onValue(ref(fbDb, `fps/rooms_fb/${roomId}/players`), (snap) => {
+        if (!is3dRunning) return;
+        syncFirebasePlayers(snap.val() || {});
+      });
+
+      // Escuchar estado del duelo / clash
+      if (fbRoomClashUnsub) fbRoomClashUnsub();
+      fbRoomClashUnsub = onValue(ref(fbDb, `fps/rooms_fb/${roomId}/clash`), (snap) => {
+        if (!is3dRunning) return;
+        const clashData = snap.val();
+        if (clashData) {
+          if (clashData.score !== undefined) {
+            vsClashScore = clashData.score;
+          }
+          if (clashData.winnerName && clashData.winnerId && clashData.winTime && clashData.winTime > (window._lastFbWinTime || 0)) {
+            window._lastFbWinTime = clashData.winTime;
+            const isMe = (clashData.winnerId === myPeerId);
+            handleClashVictory(clashData.winnerName, isMe);
+          }
+          if (clashData.resetTime && clashData.resetTime > (window._lastFbResetTime || 0)) {
+            window._lastFbResetTime = clashData.resetTime;
+            vsClashScore = 50;
+            isClashActive = true;
+            const popup = document.getElementById('vsVictoryPopup');
+            if (popup) popup.classList.remove('active');
+            if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+          }
+        }
+      });
+
+      launch3DGameUI();
+      updateHudServerInfo();
+      spawnFloatingAura('🔥 ¡CONECTADO VÍA FIREBASE RELAY!');
+    }
+
     function playSoloGame() {
       p2pMode = 'solo';
+      isFirebaseFallback = false;
       currentRoomInfo = {
         name: 'Modo Práctica Solo',
         hostName: selectedChar.name,
@@ -4562,15 +4832,25 @@
 
     function updateHudServerInfo() {
       if (!hudServerInfo) return;
+      const isFb = isFirebaseFallback;
       if (p2pMode === 'host') {
-        hudServerName.textContent = `👑 HOST: ${(currentRoomInfo.name || 'Mi Sala').slice(0, 16)}`;
-        hudServerPlayers.textContent = `${Object.keys(hostConnections).length + 1}/${currentRoomInfo.maxPlayers || 8}`;
-        hudServerPlayers.style.color = '#00ff66';
+        const pCount = isFb ? (Object.keys(otherPlayers).length + 1) : (Object.keys(hostConnections).length + 1);
+        const relayTag = isFb ? ' (FIREBASE)' : ' (P2P)';
+        hudServerName.textContent = `👑 HOST: ${(currentRoomInfo.name || 'Mi Sala').slice(0, 14)}${relayTag}`;
+        hudServerPlayers.textContent = `${pCount}/${currentRoomInfo.maxPlayers || 8}`;
+        hudServerPlayers.style.color = isFb ? '#00f0ff' : '#00ff66';
       } else if (p2pMode === 'client') {
-        const pingStr = p2pPing > 0 ? ` (${p2pPing}ms)` : '';
-        hudServerName.textContent = `🌐 ${(currentRoomInfo.name || 'Sala P2P').slice(0, 14)}${pingStr}`;
-        hudServerPlayers.textContent = `${Object.keys(otherPlayers).length + 1}/${currentRoomInfo.maxPlayers || 8}`;
-        hudServerPlayers.style.color = p2pPing < 70 ? '#00ff66' : '#ffe600';
+        const pCount = Object.keys(otherPlayers).length + 1;
+        if (isFb) {
+          hudServerName.textContent = `🔥 ${(currentRoomInfo.name || 'Sala').slice(0, 14)} (FIREBASE)`;
+          hudServerPlayers.textContent = `${pCount}/${currentRoomInfo.maxPlayers || 8}`;
+          hudServerPlayers.style.color = '#00f0ff';
+        } else {
+          const pingStr = p2pPing > 0 ? ` (${p2pPing}ms)` : '';
+          hudServerName.textContent = `⚡ ${(currentRoomInfo.name || 'Sala P2P').slice(0, 14)}${pingStr}`;
+          hudServerPlayers.textContent = `${pCount}/${currentRoomInfo.maxPlayers || 8}`;
+          hudServerPlayers.style.color = p2pPing < 70 ? '#00ff66' : '#ffe600';
+        }
       } else {
         hudServerName.textContent = `🎮 MODO SOLO`;
         hudServerPlayers.textContent = `1/1`;
@@ -4589,6 +4869,26 @@
     }
 
     function leaveCurrentP2PServer() {
+      if (p2pConnectTimer) {
+        clearTimeout(p2pConnectTimer);
+        p2pConnectTimer = null;
+      }
+
+      // Limpiar listeners de Firebase de sala
+      if (fbRoomPlayersUnsub) { fbRoomPlayersUnsub(); fbRoomPlayersUnsub = null; }
+      if (fbRoomClashUnsub) { fbRoomClashUnsub(); fbRoomClashUnsub = null; }
+      if (fbRoomFallbackUnsub) { fbRoomFallbackUnsub(); fbRoomFallbackUnsub = null; }
+      if (fbRoomClashPushUnsub) { fbRoomClashPushUnsub(); fbRoomClashPushUnsub = null; }
+
+      // Limpiar presencia en Firebase
+      if (fbDb && currentRoomId) {
+        remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}/players/${myPeerId}`)).catch(() => {});
+        if (p2pMode === 'host') {
+          remove(ref(fbDb, `fps/rooms_fb/${currentRoomId}`)).catch(() => {});
+          remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => {});
+        }
+      }
+
       // Limpiar y resetear estados de muerte y cinemática
       isWastedCamActive = false;
       isClashActive = true;
@@ -4617,9 +4917,6 @@
           clearInterval(roomHeartbeatInterval);
           roomHeartbeatInterval = null;
         }
-        if (fbDb && currentRoomId) {
-          remove(ref(fbDb, `fps/p2p_servers/${currentRoomId}`)).catch(() => {});
-        }
         for (const pid in hostConnections) {
           try {
             hostConnections[pid].send({ type: 'error', message: 'El anfitrión ha cerrado el servidor.' });
@@ -4639,6 +4936,7 @@
       }
 
       p2pMode = 'none';
+      isFirebaseFallback = false;
       currentRoomId = null;
       cleanupAllOtherPlayers();
 
@@ -4707,6 +5005,7 @@
           const safeHost = (room.hostName || 'Anfitrión').replace(/</g, '&lt;');
           const pCount = room.playersCount || 1;
           const maxP = room.maxPlayers || 8;
+          const isRelay = !!room.useFirebase;
 
           return `
             <div class="server-card">
@@ -4718,7 +5017,7 @@
                 <div class="server-card-meta">
                   <span class="server-badge-host">👑 HOST: <b>${safeHost}</b></span>
                   <span class="server-badge-players">👥 <b>${pCount}/${maxP}</b> JUGADORES</span>
-                  <span style="color:#00f0ff;">🌐 WEBRTC P2P</span>
+                  <span style="color:${isRelay ? '#00f0ff' : '#00ff66'};">🌐 ${isRelay ? 'FIREBASE RELAY' : 'WEBRTC P2P'}</span>
                 </div>
               </div>
               <div>
@@ -4727,7 +5026,7 @@
                 ` : isFull ? `
                   <button class="btn-join-server" style="background:#555;color:#aaa;cursor:not-allowed;" disabled>LLENO</button>
                 ` : `
-                  <button class="btn-join-server" data-host="${room.hostPeerId}" data-name="${safeName}">ENTRAR ▶</button>
+                  <button class="btn-join-server" data-host="${room.hostPeerId}" data-name="${safeName}" data-roomid="${room.id || ''}">ENTRAR ▶</button>
                 `}
               </div>
             </div>
@@ -4739,8 +5038,9 @@
           btn.addEventListener('click', () => {
             const hostId = btn.getAttribute('data-host');
             const rName = btn.getAttribute('data-name');
+            const rId = btn.getAttribute('data-roomid');
             playSound('select');
-            joinP2PServer(hostId, rName);
+            joinP2PServer(hostId, rName, rId);
           });
         });
       });
@@ -4822,7 +5122,7 @@
       }
       playSound('select');
       directJoinModal.classList.remove('active');
-      joinP2PServer(code, 'Sala Privada');
+      joinP2PServer(code, 'Sala Privada', code.startsWith('room_') ? code : null);
     });
 
     btnPlaySolo.addEventListener('click', () => {
@@ -6130,6 +6430,14 @@
           if (vsClashScore >= 100) {
             const wName = selectedChar.name || 'Tú';
             handleClashVictory(wName, true);
+            if (isFirebaseFallback && fbDb && currentRoomId) {
+              set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+                score: 100,
+                winnerName: wName,
+                winnerId: myPeerId,
+                winTime: Date.now()
+              }).catch(() => {});
+            }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
                 hostConnections[pid].send({
@@ -6140,6 +6448,13 @@
               }
             }
           } else {
+            if (isFirebaseFallback && fbDb && currentRoomId) {
+              set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
+                score: vsClashScore,
+                lastPushBy: myPeerId,
+                time: Date.now()
+              }).catch(() => {});
+            }
             for (const pid in hostConnections) {
               if (hostConnections[pid]?.open) {
                 hostConnections[pid].send({
@@ -6152,6 +6467,13 @@
         } else if (p2pMode === 'client') {
           // El Cliente (P2) predice su empuje localmente y envía su clic al Host
           vsClashScore = Math.max(0, vsClashScore - pushPower);
+          if (isFirebaseFallback && fbDb && currentRoomId) {
+            set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash_push/${myPeerId}`), {
+              push: pushPower,
+              senderName: selectedChar.name,
+              time: Date.now()
+            }).catch(() => {});
+          }
           if (clientConnection && clientConnection.open) {
             clientConnection.send({
               type: 'clash_push',
