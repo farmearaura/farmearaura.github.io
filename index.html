@@ -2205,6 +2205,132 @@
       border-radius: 50%;
       box-shadow: 0 0 6px #00ff66;
     }
+
+    /* ══ HUD CHAT SYSTEM EN SALAS ══ */
+    .hud-chat-box {
+      position: absolute;
+      bottom: 85px;
+      left: 18px;
+      width: min(320px, 82vw);
+      max-height: 170px;
+      display: flex;
+      flex-direction: column;
+      background: rgba(8, 14, 30, 0.72);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 10px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 45;
+      padding: 6px 8px;
+      gap: 6px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.55);
+      transition: all 0.2s ease;
+      pointer-events: auto;
+    }
+
+    .hud-chat-box:focus-within {
+      background: rgba(8, 14, 30, 0.95);
+      border-color: #00f0ff;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+    }
+
+    .hud-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 105px;
+      font-size: 7.5px;
+      line-height: 1.4;
+      padding-right: 4px;
+      scroll-behavior: smooth;
+    }
+
+    .hud-chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .hud-chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.4);
+      border-radius: 4px;
+    }
+
+    .hud-chat-msg {
+      word-break: break-word;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .hud-chat-msg.system {
+      color: #00ff66;
+      font-size: 7px;
+      background: rgba(0, 255, 102, 0.12);
+      border-left: 2px solid #00ff66;
+    }
+
+    .hud-chat-msg .chat-author {
+      color: #00f0ff;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .hud-chat-msg .chat-author.is-me {
+      color: #ffe600;
+    }
+
+    .hud-chat-msg .chat-text {
+      color: #ffffff;
+    }
+
+    .hud-chat-form {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .hud-chat-input {
+      flex: 1;
+      background: rgba(14, 22, 48, 0.9);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: #ffffff;
+      font-size: 8px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .hud-chat-input:focus {
+      border-color: #00f0ff;
+      background: rgba(14, 22, 48, 1);
+    }
+
+    .hud-chat-input::placeholder {
+      color: #657795;
+      font-size: 7px;
+    }
+
+    .hud-chat-send {
+      background: linear-gradient(180deg, #00f0ff 0%, #0072ff 100%);
+      color: #fff;
+      border: 1px solid #fff;
+      border-radius: 6px;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-size: 10px;
+      transition: transform 0.1s;
+    }
+
+    .hud-chat-send:hover {
+      transform: scale(1.06);
+    }
+
+    .hud-chat-send:active {
+      transform: scale(0.94);
+    }
   </style>
 </head>
 
@@ -2527,13 +2653,27 @@
             <button class="mobile-btn mobile-btn-jump" id="mobileBtnJump" title="Saltar">🦘</button>
             <button class="mobile-btn mobile-btn-emote" id="mobileBtnEmote" title="Emotes">🕺</button>
             <button class="mobile-btn mobile-btn-bocina" id="mobileBtnBocina" title="Bocina">📻</button>
+            <button class="mobile-btn mobile-btn-chat" id="mobileBtnChat" title="Chat">💬</button>
           </div>
+        </div>
+
+        <!-- Chat en Vivo en Sala Multijugador -->
+        <div class="hud-chat-box" id="hudChatBox">
+          <div class="hud-chat-messages" id="hudChatMessages">
+            <div class="hud-chat-msg system">
+              <span class="hud-chat-text">¡Bienvenido a la sala! Presiona <b>[ENTER]</b> o <b>[T]</b> para chatear.</span>
+            </div>
+          </div>
+          <form class="hud-chat-form" id="hudChatForm" onsubmit="return false;">
+            <input type="text" id="hudChatInput" class="hud-chat-input" placeholder="[T] Escribir mensaje..." maxlength="75" autocomplete="off">
+            <button type="submit" id="hudChatSendBtn" class="hud-chat-send">💬</button>
+          </form>
         </div>
 
         <div class="hud-bottom">
           <div class="hud-controls-hint">
             <b>[W,A,S,D]</b> Moverse &bull; <b>[ESPACIO]</b> Saltar &bull; <b>[SHIFT]</b> Correr<br>
-            <b>[CLICK]</b> Vista 3D &bull; <b>[B]</b> Emotes &bull; <b>[E / CLIC]</b> Farmear Aura
+            <b>[CLICK]</b> Vista 3D &bull; <b>[B]</b> Emotes &bull; <b>[T / ENTER]</b> Chat &bull; <b>[E]</b> Farmear
           </div>
 
           <div class="hud-farm-orb" id="hud-farm-orb">
@@ -4468,6 +4608,124 @@
       Object.keys(otherPlayers).forEach(id => removeOtherPlayer(id));
     }
 
+    /* ══ IN-GAME MULTIPLAYER CHAT SYSTEM ══ */
+    const hudChatBox = document.getElementById('hudChatBox');
+    const hudChatMessages = document.getElementById('hudChatMessages');
+    const hudChatForm = document.getElementById('hudChatForm');
+    const hudChatInput = document.getElementById('hudChatInput');
+    const hudChatSendBtn = document.getElementById('hudChatSendBtn');
+    const mobileBtnChat = document.getElementById('mobileBtnChat');
+    let fbRoomChatUnsub = null;
+
+    function appendChatMessage(authorName, text, isMe = false, isSystem = false, senderId = null) {
+      if (!hudChatMessages || !text) return;
+
+      const msgDiv = document.createElement('div');
+      msgDiv.className = 'hud-chat-msg' + (isSystem ? ' system' : '');
+
+      if (isSystem) {
+        msgDiv.innerHTML = `<span class="chat-text">${text.replace(/</g, '&lt;')}</span>`;
+      } else {
+        const safeAuthor = (authorName || 'Fighter').replace(/</g, '&lt;');
+        const safeText = text.replace(/</g, '&lt;');
+        msgDiv.innerHTML = `
+          <span class="chat-author ${isMe ? 'is-me' : ''}">[${safeAuthor}]:</span>
+          <span class="chat-text">${safeText}</span>
+        `;
+      }
+
+      hudChatMessages.appendChild(msgDiv);
+
+      while (hudChatMessages.children.length > 45) {
+        hudChatMessages.removeChild(hudChatMessages.firstChild);
+      }
+
+      hudChatMessages.scrollTop = hudChatMessages.scrollHeight;
+      playSound('hover');
+
+      // Burbuja flotante 3D sobre la cabeza del personaje que habla
+      const bubbleText = `💬 ${text.length > 28 ? text.slice(0, 25) + '...' : text}`;
+      if (isMe) {
+        spawnFloatingAura3D(playerPos.x, playerPos.y + 0.8, playerPos.z, bubbleText, '#ffe600');
+      } else if (senderId && otherPlayers[senderId] && otherPlayers[senderId].group) {
+        const pGroup = otherPlayers[senderId].group;
+        spawnFloatingAura3D(pGroup.position.x, pGroup.position.y + 0.8, pGroup.position.z, bubbleText, '#00f0ff');
+      }
+    }
+
+    function sendChatMessage() {
+      if (!hudChatInput) return;
+      const text = hudChatInput.value.trim();
+      if (!text) return;
+
+      hudChatInput.value = '';
+      hudChatInput.blur();
+
+      const myName = getCustomPlayerName();
+      appendChatMessage(myName, text, true, false, myPeerId);
+
+      // Enviar por P2P o Firebase
+      if (p2pMode === 'host') {
+        for (const pid in hostConnections) {
+          const c = hostConnections[pid];
+          if (c && c.open) {
+            c.send({
+              type: 'chat',
+              senderId: myPeerId,
+              senderName: myName,
+              text: text,
+              time: Date.now()
+            });
+          }
+        }
+        if (isFirebaseFallback && fbDb && currentRoomId) {
+          set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/chat`), {
+            senderId: myPeerId,
+            senderName: myName,
+            text: text,
+            time: Date.now()
+          }).catch(() => {});
+        }
+      } else if (p2pMode === 'client') {
+        if (clientConnection && clientConnection.open) {
+          clientConnection.send({
+            type: 'chat',
+            senderId: myPeerId,
+            senderName: myName,
+            text: text,
+            time: Date.now()
+          });
+        }
+        if (isFirebaseFallback && fbDb && currentRoomId) {
+          set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/chat`), {
+            senderId: myPeerId,
+            senderName: myName,
+            text: text,
+            time: Date.now()
+          }).catch(() => {});
+        }
+      }
+    }
+
+    if (hudChatForm) {
+      hudChatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendChatMessage();
+      });
+    }
+
+    if (mobileBtnChat && hudChatInput) {
+      mobileBtnChat.addEventListener('click', () => {
+        try { document.exitPointerLock(); } catch(e) {}
+        hudChatInput.focus();
+      });
+      mobileBtnChat.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        try { document.exitPointerLock(); } catch(err) {}
+        hudChatInput.focus();
+      }, { passive: false });
+    }
+
     /* ── FIREBASE INIT ── */
     try {
       const fbApp = initializeApp(FB_CONFIG);
@@ -4861,6 +5119,33 @@
               });
             }
           }
+        } else if (packet.type === 'chat') {
+          const sName = packet.senderName || 'Fighter';
+          const msgText = packet.text || '';
+          if (msgText.trim()) {
+            appendChatMessage(sName, msgText, false, false, conn.peer);
+            for (const otherPid in hostConnections) {
+              if (otherPid !== conn.peer) {
+                const c = hostConnections[otherPid];
+                if (c && c.open) {
+                  c.send({
+                    type: 'chat',
+                    senderId: conn.peer,
+                    senderName: sName,
+                    text: msgText
+                  });
+                }
+              }
+            }
+            if (isFirebaseFallback && fbDb && currentRoomId) {
+              set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/chat`), {
+                senderId: conn.peer,
+                senderName: sName,
+                text: msgText,
+                time: Date.now()
+              }).catch(() => {});
+            }
+          }
         } else if (packet.type === 'ping') {
           conn.send({ type: 'pong', time: packet.time });
         }
@@ -4984,6 +5269,19 @@
               if (senderId !== myPeerId) {
                 handleFirebaseIncomingClashPush(p);
               }
+            }
+          }
+        });
+
+        // 5. Escuchar mensajes de chat en Firebase Relay
+        if (fbRoomChatUnsub) fbRoomChatUnsub();
+        fbRoomChatUnsub = onValue(ref(fbDb, `fps/rooms_fb/${roomId}/chat`), (snap) => {
+          if (!is3dRunning) return;
+          const val = snap.val();
+          if (val && val.time && val.time > (window._lastFbChatTime || 0)) {
+            window._lastFbChatTime = val.time;
+            if (val.senderId !== myPeerId) {
+              appendChatMessage(val.senderName || 'Fighter', val.text, false, false, val.senderId);
             }
           }
         });
@@ -5207,6 +5505,12 @@
           vsClashScore = 50;
           const popup = document.getElementById('vsVictoryPopup');
           if (popup) popup.classList.remove('active');
+        } else if (packet.type === 'chat') {
+          const sName = packet.senderName || 'Fighter';
+          const msgText = packet.text || '';
+          if (msgText.trim()) {
+            appendChatMessage(sName, msgText, false, false, packet.senderId);
+          }
         } else if (packet.type === 'pong') {
           p2pPing = Math.max(1, Date.now() - (packet.time || Date.now()));
           updateHudServerInfo();
@@ -5304,6 +5608,19 @@
             const popup = document.getElementById('vsVictoryPopup');
             if (popup) popup.classList.remove('active');
             if (hudFarmOrb) hudFarmOrb.classList.remove('disabled');
+          }
+        }
+      });
+
+      // Escuchar mensajes de chat en la sala de Firebase
+      if (fbRoomChatUnsub) fbRoomChatUnsub();
+      fbRoomChatUnsub = onValue(ref(fbDb, `fps/rooms_fb/${roomId}/chat`), (snap) => {
+        if (!is3dRunning) return;
+        const val = snap.val();
+        if (val && val.time && val.time > (window._lastFbChatTime || 0)) {
+          window._lastFbChatTime = val.time;
+          if (val.senderId !== myPeerId) {
+            appendChatMessage(val.senderName || 'Fighter', val.text, false, false, val.senderId);
           }
         }
       });
@@ -5959,6 +6276,24 @@
       window.addEventListener('keydown', (e) => {
         if (gameContainer.style.display !== 'block') return;
 
+        // Si el usuario está escribiendo en el chat, no mover el personaje
+        if (document.activeElement === hudChatInput) {
+          if (e.code === 'Escape') {
+            hudChatInput.blur();
+          }
+          return;
+        }
+
+        // Abrir chat al presionar [T] o [Enter]
+        if (e.code === 'KeyT' || e.code === 'Enter') {
+          e.preventDefault();
+          try { document.exitPointerLock(); } catch (err) { }
+          if (hudChatInput) {
+            hudChatInput.focus();
+          }
+          return;
+        }
+
         if (e.code === 'KeyW' || e.code === 'ArrowUp') { keys.w = true; stopEmoteIn3D(); }
         if (e.code === 'KeyS' || e.code === 'ArrowDown') { keys.s = true; stopEmoteIn3D(); }
         if (e.code === 'KeyA' || e.code === 'ArrowLeft') { keys.a = true; stopEmoteIn3D(); }
@@ -5995,10 +6330,15 @@
         if (e.code === 'Escape') {
           emoteWheelModal.classList.remove('active');
           bocinaMusicModal.classList.remove('active');
+          if (hudChatInput) hudChatInput.blur();
         }
       });
 
       window.addEventListener('keyup', (e) => {
+        if (document.activeElement === hudChatInput) {
+          keys.w = keys.a = keys.s = keys.d = keys.space = keys.shift = false;
+          return;
+        }
         if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = false;
         if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.s = false;
         if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.a = false;
@@ -6008,7 +6348,9 @@
       });
 
       canvas.addEventListener('click', () => {
-        if (!emoteWheelModal.classList.contains('active') && !bocinaMusicModal.classList.contains('active')) {
+        if (!emoteWheelModal.classList.contains('active') &&
+            !bocinaMusicModal.classList.contains('active') &&
+            document.activeElement !== hudChatInput) {
           try {
             const p = canvas.requestPointerLock();
             if (p && typeof p.catch === 'function') p.catch(() => { });
@@ -6375,14 +6717,29 @@
       if (isSpeakerEquipped) {
         const musicBoost = isSpeakerAudioPlaying ? (Math.sin(now * 0.016) * 0.12 + Math.cos(now * 0.008) * 0.06) : 0;
         const pulse = 1.0 + (isSpeakerAudioPlaying ? 0.06 : 0) + musicBoost + Math.sin(now * 0.008) * 0.04;
+        const rotTilt = (isSpeakerAudioPlaying ? Math.sin(now * 0.012) * 0.08 : 0) + Math.sin(now * 0.004) * 0.03;
         if (playerSpeakerMesh && playerSpeakerMesh.visible) {
           playerSpeakerMesh.scale.set(pulse, pulse, 1);
+          playerSpeakerMesh.rotation.z = rotTilt;
         }
         if (fpSpeakerMesh && fpSpeakerMesh.visible) {
           const swayX = (keys.w || keys.s || keys.a || keys.d) ? Math.cos(now * 0.01) * 0.02 : 0;
           const swayY = (keys.w || keys.s || keys.a || keys.d) ? Math.sin(now * 0.02) * 0.02 : Math.sin(now * 0.004) * 0.008;
           fpSpeakerMesh.position.set(0.42 + swayX, -0.32 + swayY + (isSpeakerAudioPlaying ? musicBoost * 0.15 : 0), -0.75);
           fpSpeakerMesh.scale.set(pulse, pulse, 1);
+        }
+      }
+
+      // Animación idéntica y sincronizada para las bocinas de TODOS los demás jugadores en la sala
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        if (op && op.speakerMesh && op.speakerMesh.visible) {
+          const isOtherPlaying = !!(op.data?.speakerAudioPlaying || (op.audioEl && !op.audioEl.paused && op.currentSpeakerUrl));
+          const otherMusicBoost = isOtherPlaying ? (Math.sin(now * 0.016) * 0.12 + Math.cos(now * 0.008) * 0.06) : 0;
+          const otherPulse = 1.0 + (isOtherPlaying ? 0.06 : 0) + otherMusicBoost + Math.sin(now * 0.008) * 0.04;
+          const otherTilt = (isOtherPlaying ? Math.sin(now * 0.012) * 0.08 : 0) + Math.sin(now * 0.004) * 0.03;
+          op.speakerMesh.scale.set(otherPulse, otherPulse, 1);
+          op.speakerMesh.rotation.z = otherTilt;
         }
       }
 
