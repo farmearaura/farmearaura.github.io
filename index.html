@@ -2365,22 +2365,72 @@
         margin-top: 1px !important;
       }
 
+      /* Botonera de Acción estilo FPS Móvil (Free Fire / COD Mobile) */
       .mobile-action-buttons {
         position: absolute;
-        bottom: 16px;
-        right: 98px;
-        display: grid;
-        grid-template-columns: repeat(2, 42px);
-        gap: 7px;
-        pointer-events: auto;
-        z-index: 50;
+        bottom: 0;
+        right: 0;
+        width: 170px;
+        height: 170px;
+        display: block !important;
+        pointer-events: none;
+        z-index: 52;
       }
 
-      .mobile-btn {
-        width: 42px;
-        height: 42px;
-        font-size: 16px;
-        border-width: 1.5px;
+      .mobile-action-buttons .mobile-btn {
+        position: absolute !important;
+        pointer-events: auto !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-width: 2px !important;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+        transition: transform 0.1s ease !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+      }
+
+      .mobile-action-buttons .mobile-btn:active {
+        transform: scale(0.90) !important;
+      }
+
+      /* Saltar: Arriba del botón de Farm (alineado a la derecha) */
+      .mobile-btn-jump {
+        bottom: 102px !important;
+        right: 24px !important;
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 21px !important;
+        border-color: #00ff66 !important;
+        background: rgba(0, 255, 102, 0.32) !important;
+        box-shadow: 0 0 14px rgba(0, 255, 102, 0.5) !important;
+      }
+
+      /* Emotes: Arriba a la izquierda del botón de Farm */
+      .mobile-btn-emote {
+        bottom: 84px !important;
+        right: 92px !important;
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 17px !important;
+        border-color: #bd00ff !important;
+        background: rgba(189, 0, 255, 0.30) !important;
+        box-shadow: 0 0 12px rgba(189, 0, 255, 0.45) !important;
+      }
+
+      /* Bocina: A la izquierda directa del botón de Farm */
+      .mobile-btn-bocina {
+        bottom: 22px !important;
+        right: 98px !important;
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 17px !important;
+        border-color: #ff0077 !important;
+        background: rgba(255, 0, 119, 0.30) !important;
+        box-shadow: 0 0 12px rgba(255, 0, 119, 0.45) !important;
       }
     }
 
@@ -2744,7 +2794,7 @@
       box-shadow: 0 0 6px #00ff66;
     }
 
-    /* ══ HUD CHAT SYSTEM ESTILO ROBLOX ══ */
+    /* ══ HUD CHAT SYSTEM EN SALAS (PC: ABAJO A LA IZQUIERDA / CELULAR: ARRIBA DESPLEGABLE) ══ */
     .hud-top-left {
       display: flex;
       align-items: center;
@@ -2752,40 +2802,45 @@
       pointer-events: auto;
     }
 
-    .hud-roblox-chat-btn {
-      width: 36px;
-      height: 36px;
+    /* En PC se oculta el botón de chat de arriba */
+    .hud-top-left .mobile-btn-chat {
+      display: none;
+      position: relative;
+    }
+
+    .chat-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: linear-gradient(135deg, #ff0055 0%, #ff0000 100%);
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 900;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 3px;
       border-radius: 10px;
-      background: rgba(10, 16, 38, 0.9);
-      border: 2px solid #00f0ff;
-      color: #fff;
-      font-size: 16px;
-      display: flex;
+      border: 1.5px solid #ffffff;
+      display: none;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
-      transition: all 0.15s ease;
-      user-select: none;
-      -webkit-user-select: none;
-      pointer-events: auto;
+      box-shadow: 0 0 8px rgba(255, 0, 85, 0.9), 0 2px 4px rgba(0, 0, 0, 0.7);
+      pointer-events: none;
+      box-sizing: border-box;
+      line-height: 1;
+      animation: badgePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .hud-roblox-chat-btn:hover,
-    .hud-roblox-chat-btn.active {
-      background: rgba(0, 240, 255, 0.25);
-      border-color: #ffe600;
-      box-shadow: 0 0 20px rgba(255, 230, 0, 0.6);
-      transform: scale(1.06);
+    @keyframes badgePop {
+      0% { transform: scale(0.4); }
+      100% { transform: scale(1); }
     }
 
-    .hud-roblox-chat-btn:active {
-      transform: scale(0.94);
-    }
-
+    /* En PC el chat está en su posición original abajo a la izquierda */
     .hud-chat-box {
       position: absolute;
-      top: 60px;
+      bottom: 85px;
       left: 18px;
       width: min(340px, 86vw);
       max-height: 185px;
@@ -2800,14 +2855,7 @@
       padding: 6px 8px;
       gap: 6px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.65), 0 0 15px rgba(0, 240, 255, 0.25);
-      transition: opacity 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       pointer-events: auto;
-    }
-
-    .hud-chat-box.collapsed {
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-8px) scale(0.96);
     }
 
     .hud-chat-box:focus-within {
@@ -2936,6 +2984,14 @@
     @media (max-width: 900px),
     (pointer: coarse) {
 
+      /* En Celulares: Botón de chat visible arriba y ventana de chat en la parte superior */
+      .hud-top-left .mobile-btn-chat {
+        display: flex !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 15px !important;
+      }
+
       /* Chat estilo Roblox en Celular */
       .hud-chat-box {
         position: absolute !important;
@@ -2951,14 +3007,13 @@
         background: rgba(8, 14, 30, 0.94) !important;
         border: 1.5px solid rgba(0, 240, 255, 0.5) !important;
         box-sizing: border-box !important;
+        transition: opacity 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
       }
 
-      .hud-roblox-chat-btn {
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 13px !important;
-        border-radius: 8px !important;
-        border-width: 1.5px !important;
+      .hud-chat-box.collapsed {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transform: translateY(-8px) scale(0.96) !important;
       }
 
       .hud-chat-messages {
@@ -3325,8 +3380,11 @@
               </div>
             </div>
 
-            <!-- Botón verde de Chat del HUD puesto arriba -->
-            <button class="mobile-btn mobile-btn-chat" id="mobileBtnChat" title="Chat (T)">💬</button>
+            <!-- Botón verde de Chat del HUD puesto arriba con badge de notificaciones -->
+            <button class="mobile-btn mobile-btn-chat" id="mobileBtnChat" title="Chat (T)">
+              💬
+              <span class="chat-badge" id="chatBadge" style="display:none;">0</span>
+            </button>
           </div>
 
           <div class="hud-server-info" id="hudServerInfo">
@@ -3416,7 +3474,7 @@
           </div>
           <form class="hud-chat-form" id="hudChatForm" onsubmit="return false;">
             <input type="text" id="hudChatInput" class="hud-chat-input" placeholder="[T] Escribir mensaje..."
-              maxlength="75" autocomplete="off">
+              maxlength="260" autocomplete="off">
             <button type="submit" id="hudChatSendBtn" class="hud-chat-send">💬</button>
           </form>
         </div>
@@ -4763,6 +4821,30 @@
         triggerCameraShake(0.5, 600);
         triggerCritImpactVisual(`🏆 ¡VICTORIA! 🏆`);
 
+        // Tumbar visualmente de inmediato al oponente derrotado en la pantalla del ganador y marcarlo como derrotado
+        for (const id in otherPlayers) {
+          const op = otherPlayers[id];
+          if (op && op.group && playerPos.distanceTo(op.group.position) <= 7.0) {
+            op.isDefeated = true;
+            if (op.mesh) {
+              op.mesh.rotation.z = Math.PI / 2;
+              op.mesh.position.y = 0.45;
+            }
+            if (op.nameplateMesh) op.nameplateMesh.visible = false;
+            if (op.auraRingMesh) op.auraRingMesh.visible = false;
+            if (op.data) {
+              op.data.dead = true;
+              op.data.wasted = true;
+            }
+          }
+        }
+
+        const hudVsClashBanner = document.getElementById('hudVsClashBanner');
+        if (hudVsClashBanner) {
+          hudVsClashBanner.classList.remove('active');
+          hudVsClashBanner.innerHTML = '';
+        }
+
         if (popup && winnerEl) {
           winnerEl.textContent = `${winnerName.toUpperCase()} GANA EL DUELO`;
           if (bonusEl) bonusEl.textContent = '+5,000 AURA BONUS ⚡';
@@ -4814,6 +4896,9 @@
           playerBillboardMesh.position.y = 0.45;
         }
 
+        // Transmitir inmediatamente estado derrotado a todos los demás jugadores
+        maybePublish(true);
+
         if (wastedOverlay) {
           if (wastedSubText) {
             wastedSubText.textContent = 'PERDISTE TODA TU AURA 💀';
@@ -4837,11 +4922,27 @@
       isClashActive = true;
       vsClashScore = 50;
 
+      // Reaparecer alejado de la zona de muerte (14 a 22m) para evitar spawn-camp y bugs de círculos
+      const spawnAngle = Math.random() * Math.PI * 2;
+      const spawnDist = 14 + Math.random() * 8;
+      playerPos.x += Math.cos(spawnAngle) * spawnDist;
+      playerPos.z += Math.sin(spawnAngle) * spawnDist;
+      playerPos.y = 0;
+      playerPos.x = Math.max(-45, Math.min(45, playerPos.x));
+      playerPos.z = Math.max(-45, Math.min(45, playerPos.z));
+
+      if (playerGroup) {
+        playerGroup.position.set(playerPos.x, playerPos.y, playerPos.z);
+      }
+
       // Restaurar posición y postura normal del personaje
       if (playerBillboardMesh) {
         playerBillboardMesh.rotation.z = 0;
         playerBillboardMesh.position.y = 1.6;
       }
+
+      // Transmitir de inmediato la nueva posición y que ya revivió
+      maybePublish(true);
 
       // Rehabilitar el botón de farmeo
       if (hudFarmOrb) {
@@ -4954,8 +5055,9 @@
         y: +(playerPos.y + 1.5).toFixed(3),
         z: +playerPos.z.toFixed(3),
         yaw: +cameraYaw.toFixed(4),
-        hp: 100,
-        dead: false,
+        hp: isWastedCamActive ? 0 : 100,
+        dead: !!isWastedCamActive,
+        wasted: !!isWastedCamActive,
         aura: auraCount,
         wins: playerWins,
         holdingSpeaker: !!isSpeakerEquipped,
@@ -5234,6 +5336,12 @@
         op.auraRingMesh.visible = !!(pData.activeEmote || pData.emoteVideo || pData.hasAuraRing);
       }
 
+      if (pData.dead || pData.wasted) {
+        op.isDefeated = true;
+      } else if (pData.dead === false && pData.wasted === false) {
+        op.isDefeated = false;
+      }
+
       if (op.data.aura !== pData.aura || op.data.name !== pData.name) {
         op.nameplateMesh.material.map?.dispose();
         op.nameplateMesh.material.map = makeNameplateTex(pData.name || 'Fighter', pData.aura);
@@ -5374,7 +5482,23 @@
     const hudChatInput = document.getElementById('hudChatInput');
     const hudChatSendBtn = document.getElementById('hudChatSendBtn');
     const mobileBtnChat = document.getElementById('mobileBtnChat');
+    const chatBadge = document.getElementById('chatBadge');
+    let unreadChatCount = 0;
     let fbRoomChatUnsub = null;
+
+    function updateChatBadge() {
+      if (!chatBadge) return;
+      if (unreadChatCount <= 0) {
+        chatBadge.style.display = 'none';
+        chatBadge.textContent = '0';
+      } else {
+        chatBadge.style.display = 'flex';
+        chatBadge.textContent = unreadChatCount >= 10 ? '10+' : String(unreadChatCount);
+        chatBadge.style.animation = 'none';
+        void chatBadge.offsetWidth;
+        chatBadge.style.animation = 'badgePop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      }
+    }
 
     function toggleRobloxChat(forceState = null) {
       if (!hudChatBox) return;
@@ -5384,6 +5508,8 @@
       if (shouldOpen) {
         hudChatBox.classList.remove('collapsed');
         if (mobileBtnChat) mobileBtnChat.classList.add('active');
+        unreadChatCount = 0;
+        updateChatBadge();
         try { document.exitPointerLock(); } catch (e) { }
         setTimeout(() => {
           if (hudChatInput) hudChatInput.focus();
@@ -5435,13 +5561,19 @@
       hudChatMessages.scrollTop = hudChatMessages.scrollHeight;
       playSound('hover');
 
-      // Burbuja flotante 3D sobre la cabeza del personaje que habla
-      const bubbleText = `💬 ${text.length > 28 ? text.slice(0, 25) + '...' : text}`;
+      // Notificación en el badge rojo del botón de celular si el chat está cerrado
+      if (!isMe && hudChatBox && hudChatBox.classList.contains('collapsed')) {
+        unreadChatCount++;
+        updateChatBadge();
+      }
+
+      // Burbuja flotante 3D sobre la cabeza del personaje que habla estilo Roblox
+      const bubbleText = text.length > 260 ? text.slice(0, 257) + '...' : text;
       if (isMe) {
-        spawnFloatingAura3D(playerPos.x, playerPos.y + 0.8, playerPos.z, bubbleText, '#ffe600');
+        spawnFloatingAura3D(playerPos.x, playerPos.y, playerPos.z, bubbleText, '#ffe600', null, true, 'local');
       } else if (senderId && otherPlayers[senderId] && otherPlayers[senderId].group) {
         const pGroup = otherPlayers[senderId].group;
-        spawnFloatingAura3D(pGroup.position.x, pGroup.position.y + 0.8, pGroup.position.z, bubbleText, '#00f0ff');
+        spawnFloatingAura3D(pGroup.position.x, pGroup.position.y, pGroup.position.z, bubbleText, '#00f0ff', null, true, senderId);
       }
     }
 
@@ -7819,6 +7951,18 @@
         op.mesh.rotation.y = cameraYaw;
         op.nameplateMesh.rotation.y = cameraYaw;
 
+        // Si el otro jugador está derrotado/wasted (Knockdown en el suelo)
+        if (op.data?.dead || op.data?.wasted) {
+          op.mesh.rotation.z = Math.PI / 2;
+          op.mesh.position.y = 0.45;
+          op.nameplateMesh.visible = false;
+          if (op.auraRingMesh) op.auraRingMesh.visible = false;
+        } else {
+          op.mesh.rotation.z = 0;
+          op.mesh.position.y = 1.6;
+          op.nameplateMesh.visible = true;
+        }
+
         const dist = playerPos.distanceTo(op.group.position);
         const hasActiveBocina = !!(op.audioEl && op.currentSpeakerUrl && !op.audioEl.paused);
         const hasActiveEmote = !!(op.videoEl && op.currentEmoteVideo && !op.videoEl.paused);
@@ -8020,26 +8164,165 @@
       }
     }
 
-    /* ══ SISTEMA DE NÚMEROS FLOTANTES DE AURA EN 3D ══ */
+    /* ══ SISTEMA DE NÚMEROS Y BURBUJAS FLOTANTES DE CHAT EN 3D ══ */
     const floatingAura3DMeshes = [];
-    function spawnFloatingAura3D(x, y, z, text, color = '#ffe600') {
-      if (!scene) return;
+    function spawnFloatingAura3D(x, y, z, text, color = '#ffe600', customDuration = null, isChatBubble = false, targetPlayer = null) {
+      if (!scene || !text) return;
+      const isChat = isChatBubble || text.startsWith('💬') || customDuration !== null;
+      const cleanText = text.replace(/^💬\s*/, '');
+
       const canvas = document.createElement('canvas');
-      canvas.width = 384;
-      canvas.height = 96;
       const ctx = canvas.getContext('2d');
 
-      ctx.font = '900 36px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      let geoW = 2.4;
+      let geoH = 0.6;
+      let duration = 850;
+      let vy = 2.2;
+      let driftX = (Math.random() - 0.5) * 0.4;
+      let posY = y + 2.8;
 
-      // Borde y sombra gruesa negra para máxima visibilidad en 3D
-      ctx.lineWidth = 8;
-      ctx.strokeStyle = '#000000';
-      ctx.strokeText(text, 192, 48);
+      if (isChat) {
+        ctx.font = 'bold 23px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
-      ctx.fillStyle = color;
-      ctx.fillText(text, 192, 48);
+        // Dividir texto largo en múltiples líneas (ancho generoso de línea: 390px)
+        const maxLineWidth = 390;
+        const words = cleanText.split(' ');
+        const lines = [];
+        let curLine = '';
+
+        for (let w = 0; w < words.length; w++) {
+          const word = words[w];
+          if (ctx.measureText(word).width > maxLineWidth) {
+            if (curLine) {
+              lines.push(curLine);
+              curLine = '';
+            }
+            let sub = '';
+            for (let c = 0; c < word.length; c++) {
+              const testSub = sub + word[c];
+              if (ctx.measureText(testSub).width > maxLineWidth && sub.length > 0) {
+                lines.push(sub);
+                sub = word[c];
+              } else {
+                sub = testSub;
+              }
+            }
+            if (sub) curLine = sub;
+            continue;
+          }
+
+          const testLine = curLine ? (curLine + ' ' + word) : word;
+          if (ctx.measureText(testLine).width > maxLineWidth) {
+            lines.push(curLine);
+            curLine = word;
+          } else {
+            curLine = testLine;
+          }
+        }
+        if (curLine) lines.push(curLine);
+
+        // Permitir hasta 5 líneas completas
+        const finalLines = lines.slice(0, 5);
+        if (lines.length > 5 && finalLines.length === 5) {
+          finalLines[4] = finalLines[4].length > 4 ? (finalLines[4].slice(0, -3) + '...') : (finalLines[4] + '...');
+        }
+
+        // Calcular ancho máximo real de las líneas
+        let actualMaxW = 60;
+        finalLines.forEach(l => {
+          actualMaxW = Math.max(actualMaxW, ctx.measureText(l).width);
+        });
+
+        const padX = 22;
+        const bubbleW = Math.max(90, Math.min(430, Math.ceil(actualMaxW) + padX * 2));
+        const lineHeight = 28;
+        const bubbleH = 22 + finalLines.length * lineHeight;
+        const tailH = 10;
+        const margin = 8;
+
+        canvas.width = bubbleW + margin * 2;
+        canvas.height = bubbleH + tailH + margin * 2;
+
+        const bx = margin;
+        const by = margin;
+        const radius = 14;
+
+        // Sombra suave para separar la burbuja del cielo 3D
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+
+        // Fondo de la burbuja estilo Roblox
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+        ctx.strokeStyle = color === '#ffe600' ? '#f59e0b' : '#0ea5e9';
+        ctx.lineWidth = 3;
+
+        // Dibujar cuerpo redondeado con colita inferior apuntando a la cabeza
+        ctx.beginPath();
+        ctx.moveTo(bx + radius, by);
+        ctx.lineTo(bx + bubbleW - radius, by);
+        ctx.quadraticCurveTo(bx + bubbleW, by, bx + bubbleW, by + radius);
+        ctx.lineTo(bx + bubbleW, by + bubbleH - radius);
+        ctx.quadraticCurveTo(bx + bubbleW, by + bubbleH, bx + bubbleW - radius, by + bubbleH);
+
+        // Colita de diálogo apuntando abajo al centro
+        const midX = bx + bubbleW / 2;
+        ctx.lineTo(midX + 8, by + bubbleH);
+        ctx.lineTo(midX, by + bubbleH + tailH);
+        ctx.lineTo(midX - 8, by + bubbleH);
+
+        ctx.lineTo(bx + radius, by + bubbleH);
+        ctx.quadraticCurveTo(bx, by + bubbleH, bx, by + bubbleH - radius);
+        ctx.lineTo(bx, by + radius);
+        ctx.quadraticCurveTo(bx, by, bx + radius, by);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Reset de sombra para texto limpio
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+
+        // Texto nítido oscuro y legible (centrado vertical por líneas)
+        ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#0f172a';
+
+        const textStartY = by + (bubbleH - (finalLines.length - 1) * lineHeight) / 2;
+        finalLines.forEach((lineText, idx) => {
+          ctx.fillText(lineText, bx + bubbleW / 2, textStartY + idx * lineHeight);
+        });
+
+        // Ajustar tamaño 3D proporcional al canvas
+        geoW = (canvas.width / 100) * 0.44;
+        geoH = (canvas.height / 100) * 0.44;
+        duration = customDuration || Math.max(5000, Math.min(8500, 3500 + cleanText.length * 25));
+        vy = 0.03;
+        driftX = 0;
+        posY = y + 3.0 + (geoH / 2);
+      } else {
+        canvas.width = 384;
+        canvas.height = 96;
+
+        ctx.font = '900 36px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = '#000000';
+        ctx.strokeText(text, 192, 48);
+
+        ctx.fillStyle = color;
+        ctx.fillText(text, 192, 48);
+
+        geoW = 2.4;
+        geoH = 0.6;
+        duration = 850;
+        vy = 2.2;
+        driftX = (Math.random() - 0.5) * 0.4;
+        posY = y + 2.8;
+      }
 
       const tex = new THREE.CanvasTexture(canvas);
       tex.minFilter = THREE.LinearFilter;
@@ -8052,18 +8335,21 @@
         depthWrite: false
       });
 
-      const geo = new THREE.PlaneGeometry(2.4, 0.6);
+      const geo = new THREE.PlaneGeometry(geoW, geoH);
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(x + (Math.random() - 0.5) * 0.3, y + 2.9, z + (Math.random() - 0.5) * 0.3);
+      mesh.position.set(x + (isChat ? 0 : (Math.random() - 0.5) * 0.1), posY, z + (isChat ? 0 : (Math.random() - 0.5) * 0.1));
       mesh.renderOrder = 9999;
       scene.add(mesh);
 
       floatingAura3DMeshes.push({
         mesh: mesh,
         createdAt: performance.now(),
-        duration: 850,
-        vy: 2.2,
-        driftX: (Math.random() - 0.5) * 0.4
+        duration: duration,
+        vy: vy,
+        driftX: driftX,
+        isChat: isChat,
+        targetPlayer: targetPlayer,
+        geoH: geoH
       });
     }
 
@@ -8079,24 +8365,53 @@
           floatingAura3DMeshes.splice(i, 1);
         } else {
           const progress = elapsed / item.duration;
-          item.mesh.position.y += item.vy * dt;
-          item.mesh.position.x += item.driftX * dt;
+
+          // Si es burbuja de chat anclada a un jugador, seguir su posición en tiempo real y crecer hacia arriba
+          if (item.targetPlayer === 'local') {
+            item.mesh.position.x = playerPos.x;
+            item.mesh.position.z = playerPos.z;
+            item.mesh.position.y = playerPos.y + 3.0 + ((item.geoH || 0.6) / 2);
+          } else if (item.targetPlayer && otherPlayers[item.targetPlayer] && otherPlayers[item.targetPlayer].group) {
+            const opPos = otherPlayers[item.targetPlayer].group.position;
+            item.mesh.position.x = opPos.x;
+            item.mesh.position.z = opPos.z;
+            item.mesh.position.y = opPos.y + 3.0 + ((item.geoH || 0.6) / 2);
+          } else {
+            item.mesh.position.y += item.vy * dt;
+            item.mesh.position.x += item.driftX * dt;
+          }
+
           item.mesh.rotation.y = cameraYaw;
 
-          const pop = progress < 0.2 ? (1.0 + (1.0 - progress / 0.2) * 0.3) : 1.0;
-          item.mesh.scale.set(pop, pop, 1);
-          item.mesh.material.opacity = Math.max(0, 1.0 - Math.pow(progress, 1.4));
+          if (item.isChat) {
+            // Burbuja de chat: pop suave al inicio, visible al 100% y fade-out en los últimos segundos
+            const pop = progress < 0.1 ? (0.8 + (progress / 0.1) * 0.2) : 1.0;
+            item.mesh.scale.set(pop, pop, 1);
+            item.mesh.material.opacity = progress > 0.8 ? Math.max(0, 1.0 - (progress - 0.8) / 0.2) : 1.0;
+          } else {
+            const pop = progress < 0.2 ? (1.0 + (1.0 - progress / 0.2) * 0.3) : 1.0;
+            item.mesh.scale.set(pop, pop, 1);
+            item.mesh.material.opacity = Math.max(0, 1.0 - Math.pow(progress, 1.4));
+          }
         }
       }
     }
 
     /* ══ TABLA DE CLASIFICACIÓN / DUELO VERSUS DE CLICS (SOLO SI HAY RIVAL EN EL CÍRCULO CON AURA ACTIVA) ══ */
     function getNearbyClashOpponent() {
+      // Si yo estoy muerto o en pantalla Wasted, no puedo iniciar ni estar en PVP
+      if (isWastedCamActive) return null;
+
       const myAuraActive = !!((playerAuraRingMesh && playerAuraRingMesh.visible) || isEmotePlaying);
 
       for (const id in otherPlayers) {
         const op = otherPlayers[id];
         if (op && op.group) {
+          // IGNORAR SI EL RIVAL ESTÁ DERROTADO / EN EL SUELO / DEAD / NO HA RESPAWNEADO
+          if (op.isDefeated || op.data?.dead || op.data?.wasted || (op.mesh && Math.abs(op.mesh.rotation.z) > 0.3)) {
+            continue;
+          }
+
           const dist = playerPos.distanceTo(op.group.position);
           if (dist <= 4.8) {
             const rivalAuraActive = !!(op.auraRingMesh && op.auraRingMesh.visible) ||
