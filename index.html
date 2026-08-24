@@ -3365,7 +3365,7 @@
       <div class="crosshair"></div>
 
       <!-- Emote Video element (for Texture and Audio) -->
-      <video id="emoteVideo" playsinline loop crossorigin="anonymous" style="display:none;"></video>
+      <video id="emoteVideo" playsinline webkit-playsinline muted autoplay loop crossorigin="anonymous" style="display:none;"></video>
       <div id="emoteVideoOverlay" style="display:none !important;"><b id="currentEmoteName"
           style="display:none;"></b><button id="stopEmoteBtn" style="display:none;"></button></div>
 
@@ -5610,25 +5610,42 @@
         op.currentEmoteVideo = emoteVid;
         if (!op.videoEl) {
           op.videoEl = document.createElement('video');
+          op.videoEl.setAttribute('playsinline', '');
+          op.videoEl.setAttribute('webkit-playsinline', '');
+          op.videoEl.setAttribute('muted', '');
+          op.videoEl.muted = true;
+          op.videoEl.defaultMuted = true;
           op.videoEl.playsInline = true;
+          op.videoEl.autoplay = true;
           op.videoEl.loop = true;
+          op.videoEl.preload = 'auto';
           op.videoEl.crossOrigin = 'anonymous';
-          op.videoEl.muted = false;
           op.videoTex = new THREE.VideoTexture(op.videoEl);
           op.videoTex.colorSpace = THREE.SRGBColorSpace;
-        } else {
-          op.videoEl.muted = false;
+          op.videoTex.minFilter = THREE.LinearFilter;
+          op.videoTex.magFilter = THREE.LinearFilter;
         }
 
-        // Calcular volumen espacial por distancia
+        // En iOS Safari, iniciar siempre muted para que la reproducción automática esté 100% garantizada
+        op.videoEl.muted = true;
+        op.videoEl.src = resolveUrl(emoteVid);
+        op.videoEl.load();
+
         const dist = playerPos.distanceTo(op.group.position);
         const maxDist = 45.0;
-        op.videoEl.volume = Math.max(0, Math.min(0.8, (1 - dist / maxDist) * 0.8));
 
-        op.videoEl.src = resolveUrl(emoteVid);
         const playPromise = op.videoEl.play();
         if (playPromise !== undefined) {
-          playPromise.catch(() => {
+          playPromise.then(() => {
+            // Si el usuario ya interactuó con el juego, habilitar el sonido espacial
+            try {
+              op.videoEl.muted = false;
+              op.videoEl.volume = Math.max(0, Math.min(0.8, (1 - dist / maxDist) * 0.8));
+            } catch (e) {
+              op.videoEl.muted = true;
+            }
+          }).catch(() => {
+            // Si iOS restringe el audio, reproducir con muted asegurando los 60 FPS de animación
             op.videoEl.muted = true;
             op.videoEl.play().catch(() => { });
           });
@@ -6164,18 +6181,33 @@
       isEmotePlaying = true;
 
       const resolved = resolveUrl(vidUrl);
+      emoteVideo.setAttribute('playsinline', '');
+      emoteVideo.setAttribute('webkit-playsinline', '');
+      emoteVideo.muted = true;
       emoteVideo.src = resolved;
-      emoteVideo.muted = false;
-      emoteVideo.volume = (isSpeakerEquipped && isSpeakerAudioPlaying) ? 0.15 : 0.7;
+      emoteVideo.load();
 
       if (!emoteVideoTexture) {
         emoteVideoTexture = new THREE.VideoTexture(emoteVideo);
         emoteVideoTexture.colorSpace = THREE.SRGBColorSpace;
+        emoteVideoTexture.minFilter = THREE.LinearFilter;
+        emoteVideoTexture.magFilter = THREE.LinearFilter;
       }
 
-      emoteVideo.oncanplay = () => {
-        emoteVideo.play().catch(() => { });
-      };
+      const p = emoteVideo.play();
+      if (p !== undefined) {
+        p.then(() => {
+          try {
+            emoteVideo.muted = false;
+            emoteVideo.volume = (isSpeakerEquipped && isSpeakerAudioPlaying) ? 0.15 : 0.7;
+          } catch (e) {
+            emoteVideo.muted = true;
+          }
+        }).catch(() => {
+          emoteVideo.muted = true;
+          emoteVideo.play().catch(() => { });
+        });
+      }
 
       emoteVideo.onended = () => {
         stopEmoteIn3D();
@@ -8117,6 +8149,17 @@
           const otherTilt = (isOtherPlaying ? Math.sin(now * 0.012) * 0.08 : 0) + Math.sin(now * 0.004) * 0.03;
           op.speakerMesh.scale.set(otherPulse, otherPulse, 1);
           op.speakerMesh.rotation.z = otherTilt;
+        }
+      }
+
+      // Actualización continua de texturas de video para compatibilidad con iOS Safari / WebKit
+      if (isEmotePlaying && emoteVideoTexture && emoteVideo && !emoteVideo.paused) {
+        emoteVideoTexture.needsUpdate = true;
+      }
+      for (const id in otherPlayers) {
+        const op = otherPlayers[id];
+        if (op && op.videoTex && op.videoEl && !op.videoEl.paused) {
+          op.videoTex.needsUpdate = true;
         }
       }
 
