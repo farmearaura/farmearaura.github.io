@@ -33,6 +33,7 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -3331,7 +3332,7 @@
         <div class="p2p-form-group">
           <label>IMAGEN DEL FIGHTER (PNG / JPG / GIF / WEBP):</label>
           <input type="file" id="inputCustomSkinFile"
-            accept="image/png, image/jpeg, image/webp, image/gif, .gif, .png, .jpg, .jpeg, .webp"
+            accept="image/png, image/jpeg, image/webp, image/gif, .gif, .png, .jpg, .jpeg, .webp, .zip, .skin, application/zip, application/x-zip-compressed"
             style="display:none;" />
           <button type="button" class="btn-server-action btn-server-direct" id="btnSelectSkinFile"
             style="justify-content:center;margin-top:4px;">
@@ -3588,8 +3589,8 @@
 
     function resolveUrl(url) {
       if (!url) return '';
-      // Si ya es una URL web completa http/https o data URI
-      if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      // Si ya es una URL web completa http/https, data URI o blob URI
+      if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
         if (url.includes('github.com/') && url.includes('/blob/')) {
           url = url.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/');
         }
@@ -3772,11 +3773,22 @@
 
     let characters = [DEFAULT_SKIN, ...customCharacters];
 
-    // 2. Carga asíncrona completa desde IndexedDB (recupera GIFs pesados)
+    // 2. Carga asíncrona completa desde IndexedDB (recupera GIFs pesados y videos de paquetes ZIP)
     loadCustomSkinsFromDB().then(idbSkins => {
       if (idbSkins && idbSkins.length > 0) {
         const mergedMap = new Map();
-        idbSkins.forEach(s => mergedMap.set(s.name, s));
+        idbSkins.forEach(s => {
+          if (Array.isArray(s.customEmotes)) {
+            s.customEmotes.forEach(em => {
+              if (em.videoBlob && (!em.video || em.video.startsWith('blob:'))) {
+                try {
+                  em.video = URL.createObjectURL(em.videoBlob);
+                } catch (e) { }
+              }
+            });
+          }
+          mergedMap.set(s.name, s);
+        });
         customCharacters.forEach(s => {
           if (!mergedMap.has(s.name)) mergedMap.set(s.name, s);
         });
@@ -4270,6 +4282,7 @@
       localStorage.setItem('zw_skinUrl', char.image || IMG_PLAYER);
       localStorage.setItem('zw_skinName', char.name);
       renderStartScreenLeaderboard();
+      renderRadialEmoteWheel();
     }
 
     function populateGrid(skinList) {
@@ -4375,10 +4388,102 @@
       });
     }
 
+    let pendingCustomSkinEmotes = [];
+
     if (inputCustomSkinFile) {
       inputCustomSkinFile.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
+
+        pendingCustomSkinEmotes = [];
+
+        // Detección automática de Paquete ZIP / .skin (Skin + Emotes empaquetados)
+        const isZip = file.name.toLowerCase().endsWith('.zip') || file.name.toLowerCase().endsWith('.skin') || file.type.includes('zip');
+        if (isZip) {
+          try {
+            if (typeof JSZip === 'undefined') {
+              throw new Error('Librería JSZip no cargada');
+            }
+            const zip = await JSZip.loadAsync(file);
+            let manifestJson = null;
+            const customEmotes = [];
+
+            // Obtener todos los nombres de archivo válidos (ignorando carpetas y metadatos de macOS/WinRAR)
+            const allFiles = Object.keys(zip.files).filter(k => !zip.files[k].dir && !k.includes('__MACOSX') && !k.startsWith('.'));
+
+            // 1. Buscar manifest.json / info.json
+            const jsonKey = allFiles.find(k => /(?:^|[\\/])(manifest|info|character|skin)\.json$/i.test(k));
+            if (jsonKey) {
+              try {
+                const text = await zip.file(jsonKey).async('text');
+                manifestJson = JSON.parse(text);
+              } catch (e) {
+                console.warn('Error parseando manifest.json:', e);
+              }
+            }
+
+            // 2. Buscar skin.png / skin.gif / skin.webp / imagen
+            const imgKeys = allFiles.filter(k => /\.(png|jpe?g|gif|webp)$/i.test(k));
+            let targetImgKey = imgKeys.find(k => /(?:^|[\\/])(skin|character|fighter|avatar)\.(png|jpe?g|gif|webp)$/i.test(k)) || imgKeys[0];
+
+            if (targetImgKey) {
+              const imgBlob = await zip.file(targetImgKey).async('blob');
+              const dataUrl = await optimizeImageToDataURL(imgBlob, 384, 384);
+              pendingCustomSkinDataUrl = dataUrl;
+              if (customSkinPreviewImg) customSkinPreviewImg.src = dataUrl;
+            } else {
+              throw new Error('No se encontró ninguna imagen para la skin en el archivo ZIP.');
+            }
+
+            // 3. Buscar todos los archivos de video / emotes (emote1.mp4, baile1.mp4, etc.)
+            const videoKeys = allFiles.filter(k => /\.(mp4|webm|mov)$/i.test(k));
+            for (const vKey of videoKeys) {
+              const vFile = zip.file(vKey);
+              if (!vFile) continue;
+
+              const cleanFileName = vKey.split('/').pop().split('\\').pop();
+              const cleanBaseName = cleanFileName.replace(/\.[^/.]+$/, '');
+              let emoteName = cleanBaseName;
+
+              if (manifestJson && Array.isArray(manifestJson.emotes)) {
+                const match = manifestJson.emotes.find(em => 
+                  (em.file && (em.file === cleanFileName || em.file === cleanBaseName || em.file === vKey)) ||
+                  (em.name && (em.name === cleanBaseName || em.name === cleanFileName))
+                );
+                if (match && match.name) emoteName = match.name;
+              }
+
+              const vBlob = await vFile.async('blob');
+              const mp4Blob = new Blob([vBlob], { type: 'video/mp4' });
+              const blobUrl = URL.createObjectURL(mp4Blob);
+              customEmotes.push({
+                id: `zip_emote_${Date.now()}_${customEmotes.length}`,
+                name: emoteName,
+                video: blobUrl,
+                videoBlob: mp4Blob,
+                icon: '🕺',
+                isChroma: true,
+                unlocked: true
+              });
+            }
+
+            pendingCustomSkinEmotes = customEmotes;
+
+            const autoName = manifestJson?.name || file.name.replace(/\.[^/.]+$/, '');
+            inputCustomSkinName.value = autoName.charAt(0).toUpperCase() + autoName.slice(1, 18);
+
+            if (customSkinPreviewName) {
+              customSkinPreviewName.textContent = customEmotes.length > 0 ? `${autoName} (+${customEmotes.length} Emotes)` : autoName;
+            }
+            if (customSkinPreviewBox) customSkinPreviewBox.style.display = 'flex';
+            playSound('select');
+            return;
+          } catch (zipErr) {
+            console.warn('Error leyendo paquete ZIP:', zipErr);
+            alert('Error al leer el archivo ZIP/Skin: ' + (zipErr.message || 'Formato no válido'));
+            return;
+          }
+        }
 
         try {
           const dataUrl = await optimizeImageToDataURL(file, 384, 384);
@@ -4400,7 +4505,7 @@
 
     function optimizeImageToDataURL(file, maxWidth = 384, maxHeight = 384) {
       return new Promise((resolve, reject) => {
-        const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+        const isGif = file.type === 'image/gif' || (file.name && file.name.toLowerCase().endsWith('.gif'));
         const reader = new FileReader();
 
         if (isGif) {
@@ -4449,7 +4554,7 @@
     if (btnConfirmCustomSkin) {
       btnConfirmCustomSkin.addEventListener('click', () => {
         if (!pendingCustomSkinDataUrl) {
-          alert('Por favor selecciona una imagen desde tu PC.');
+          alert('Por favor selecciona una imagen o archivo de personaje.');
           return;
         }
 
@@ -4461,14 +4566,15 @@
           audio: '',
           aura: '+99999',
           unlocked: true,
-          isCustom: true
+          isCustom: true,
+          customEmotes: pendingCustomSkinEmotes || []
         };
 
         // Evitar duplicados por nombre
         customCharacters = customCharacters.filter(c => c.name !== skinName);
         customCharacters.unshift(newSkin);
 
-        // Guardar permanentemente en IndexedDB (soporta GIFs pesados)
+        // Guardar permanentemente en IndexedDB
         saveCustomSkinToDB(newSkin);
 
         // Insertar al inicio de la lista de personajes
@@ -4797,7 +4903,13 @@
       }
     }
 
+    let lastClashResolveTime = 0;
     function handleClashVictory(winnerName, isLocalWinner) {
+      const now = performance.now();
+      if (!isClashActive && (now - lastClashResolveTime < 4000)) {
+        return;
+      }
+      lastClashResolveTime = now;
       isClashActive = false;
 
       // Detener cualquier emote/baile de inmediato
@@ -5068,9 +5180,10 @@
         speakerAudioPlaying: !!(isSpeakerEquipped && isSpeakerAudioPlaying),
         activeEmote: isEmotePlaying ? {
           name: currentEmoteNameEl.textContent || 'BAILANDO',
-          video: emoteVideo.src || null
+          video: (emoteVideo.src && !emoteVideo.src.startsWith('blob:')) ? emoteVideo.src : null,
+          isCustom: !emoteVideo.src || emoteVideo.src.startsWith('blob:')
         } : null,
-        emoteVideo: isEmotePlaying ? (emoteVideo.src || null) : null,
+        emoteVideo: (isEmotePlaying && emoteVideo.src && !emoteVideo.src.startsWith('blob:')) ? emoteVideo.src : null,
         t: Date.now()
       };
     }
@@ -5402,11 +5515,96 @@
       }
     }
 
+    let peerCustomEmoteUrls = {};
+    let incomingBinaryTransfers = {};
+
+    function broadcastChunkedEmoteVideo(emoteName, arrayBuffer) {
+      const CHUNK_SIZE = 49152; // 48 KB por fragmento seguro para WebRTC
+      const totalBytes = arrayBuffer.byteLength;
+      const totalChunks = Math.ceil(totalBytes / CHUNK_SIZE);
+      const transferId = `emote_${myPeerId}_${Date.now()}`;
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, totalBytes);
+        const chunkData = arrayBuffer.slice(start, end);
+
+        const packet = {
+          type: 'chunked_emote_video',
+          senderId: myPeerId,
+          transferId: transferId,
+          emoteName: emoteName,
+          chunkIdx: i,
+          totalChunks: totalChunks,
+          chunk: chunkData
+        };
+
+        if (p2pMode === 'host') {
+          for (const pid in hostConnections) {
+            if (hostConnections[pid]?.open) {
+              hostConnections[pid].send(packet);
+            }
+          }
+        } else if (p2pMode === 'client') {
+          if (clientConnection && clientConnection.open) {
+            clientConnection.send(packet);
+          }
+        }
+      }
+    }
+
+    function handleIncomingChunkedEmoteVideo(packet, fromPeerId) {
+      const senderId = packet.senderId || fromPeerId;
+      const transferId = packet.transferId;
+      if (!senderId || !transferId) return;
+
+      if (!incomingBinaryTransfers[transferId]) {
+        incomingBinaryTransfers[transferId] = {
+          senderId: senderId,
+          emoteName: packet.emoteName,
+          totalChunks: packet.totalChunks,
+          receivedCount: 0,
+          chunks: new Array(packet.totalChunks)
+        };
+      }
+
+      const tx = incomingBinaryTransfers[transferId];
+      if (!tx.chunks[packet.chunkIdx]) {
+        tx.chunks[packet.chunkIdx] = packet.chunk;
+        tx.receivedCount++;
+      }
+
+      if (tx.receivedCount >= tx.totalChunks) {
+        try {
+          const fullBlob = new Blob(tx.chunks, { type: 'video/mp4' });
+          if (!peerCustomEmoteUrls[senderId]) peerCustomEmoteUrls[senderId] = {};
+          peerCustomEmoteUrls[senderId][tx.emoteName] = URL.createObjectURL(fullBlob);
+
+          // Actualizar inmediatamente la visualización si el jugador ya está bailando
+          if (otherPlayers[senderId] && otherPlayers[senderId].data) {
+            updateOtherPlayerEmote(senderId, otherPlayers[senderId].data);
+          }
+        } catch (err) {
+          console.warn('Error ensamblando video de emote chunked:', err);
+        }
+        delete incomingBinaryTransfers[transferId];
+      }
+    }
+
     function updateOtherPlayerEmote(id, pData) {
       const op = otherPlayers[id];
       if (!op) return;
 
-      const emoteVid = pData.activeEmote?.video || pData.emoteVideo || null;
+      let emoteVid = null;
+
+      // 1. Si recibimos el video transferido por P2P para este emote
+      if (pData.activeEmote?.name && peerCustomEmoteUrls[id] && peerCustomEmoteUrls[id][pData.activeEmote.name]) {
+        emoteVid = peerCustomEmoteUrls[id][pData.activeEmote.name];
+      } else if (pData.activeEmote?.video && !pData.activeEmote.video.startsWith('blob:')) {
+        emoteVid = pData.activeEmote.video;
+      } else if (pData.emoteVideo && !pData.emoteVideo.startsWith('blob:')) {
+        emoteVid = pData.emoteVideo;
+      }
 
       if (emoteVid && emoteVid !== op.currentEmoteVideo) {
         op.currentEmoteVideo = emoteVid;
@@ -5435,13 +5633,34 @@
             op.videoEl.play().catch(() => { });
           });
         }
-        op.mesh.material.map = op.videoTex;
-        op.mesh.material.needsUpdate = true;
+
+        // Aplicar Shader Chroma Key al modelo del otro jugador si es video MP4/blob
+        const isChroma = !!(emoteVid.toLowerCase().includes('.mp4') || emoteVid.startsWith('blob:'));
+        if (op.mesh) {
+          if (!op.mesh._defaultMat) {
+            op.mesh._defaultMat = op.mesh.material;
+          }
+          if (isChroma) {
+            if (!op.mesh._chromaMat) {
+              op.mesh._chromaMat = createChromaKeyMaterial(op.videoTex);
+            } else {
+              op.mesh._chromaMat.uniforms.map.value = op.videoTex;
+            }
+            op.mesh.material = op.mesh._chromaMat;
+          } else {
+            op.mesh.material = op.mesh._defaultMat;
+            op.mesh.material.map = op.videoTex;
+          }
+          op.mesh.material.needsUpdate = true;
+        }
       } else if (!emoteVid && op.currentEmoteVideo) {
         op.currentEmoteVideo = null;
         if (op.videoEl) {
           op.videoEl.pause();
           op.videoEl.src = '';
+        }
+        if (op.mesh && op.mesh._defaultMat) {
+          op.mesh.material = op.mesh._defaultMat;
         }
         loadSafeTexture(pData.skin || IMG_PLAYER, tex => {
           if (otherPlayers[id]) {
@@ -5735,6 +5954,7 @@
     /* ══ EMOTE SYSTEM LOGIC ══ */
     function getEmoteVideoForCharacter(emote, charName) {
       if (!emote) return '';
+      if (emote.video) return emote.video;
       if (emote.characterVideos && emote.characterVideos[charName]) {
         return emote.characterVideos[charName];
       }
@@ -5759,11 +5979,15 @@
       const svgBg = document.getElementById('emoteWheelSvgBg');
       if (svgBg) svgBg.innerHTML = '';
 
-      // Filtrar ÚNICAMENTE los emotes compatibles que este personaje tiene asignados
-      const compatibleEmotes = cachedAllEmotes.filter(emote => {
+      const customEmotes = (selectedChar && Array.isArray(selectedChar.customEmotes)) ? selectedChar.customEmotes : [];
+
+      // Filtrar emotes compatibles globales y fusionar con los emotes del paquete ZIP
+      const baseEmotes = cachedAllEmotes.filter(emote => {
         const vidUrl = getEmoteVideoForCharacter(emote, charName);
         return Boolean(vidUrl);
       });
+
+      const compatibleEmotes = [...customEmotes, ...baseEmotes];
 
       if (compatibleEmotes.length === 0) {
         const emptyDiv = document.createElement('div');
@@ -5873,6 +6097,61 @@
       }
     }
 
+    /* ══ SHADER CHROMA KEY EN TIEMPO REAL (ELIMINACIÓN DE FONDO VERDE EN GPU) ══ */
+    const chromaKeyVertexShader = `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
+    const chromaKeyFragmentShader = `
+      uniform sampler2D map;
+      uniform vec3 keyColor;
+      uniform float similarity;
+      uniform float smoothness;
+      uniform float spill;
+      varying vec2 vUv;
+
+      vec2 RGBtoUV(vec3 rgb) {
+        return vec2(
+          -0.14713 * rgb.r - 0.28886 * rgb.g + 0.436 * rgb.b,
+           0.615   * rgb.r - 0.51499 * rgb.g - 0.10001 * rgb.b
+        );
+      }
+
+      void main() {
+        vec4 texColor = texture2D(map, vUv);
+        vec2 keyUV = RGBtoUV(keyColor);
+        vec2 colorUV = RGBtoUV(texColor.rgb);
+        float dist = distance(colorUV, keyUV);
+        float alpha = smoothstep(similarity, similarity + smoothness, dist);
+        if (alpha < 1.0) {
+          float spillFactor = (1.0 - alpha) * spill;
+          texColor.g = min(texColor.g, max(texColor.r, texColor.b) * (1.0 - spillFactor) + texColor.g * spillFactor);
+        }
+        gl_FragColor = vec4(texColor.rgb, texColor.a * alpha);
+      }
+    `;
+
+    function createChromaKeyMaterial(videoTexture) {
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          map: { value: videoTexture },
+          keyColor: { value: new THREE.Vector3(0.0, 1.0, 0.0) },
+          similarity: { value: 0.42 },
+          smoothness: { value: 0.10 },
+          spill: { value: 0.45 }
+        },
+        vertexShader: chromaKeyVertexShader,
+        fragmentShader: chromaKeyFragmentShader,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+    }
+
     let isEmotePlaying = false;
     let emoteVideoTexture = null;
 
@@ -5887,7 +6166,6 @@
       const resolved = resolveUrl(vidUrl);
       emoteVideo.src = resolved;
       emoteVideo.muted = false;
-      // Si la bocina está sonando, bajar suavemente el volumen del emote de fondo (sin pausar ni mutear)
       emoteVideo.volume = (isSpeakerEquipped && isSpeakerAudioPlaying) ? 0.15 : 0.7;
 
       if (!emoteVideoTexture) {
@@ -5903,8 +6181,23 @@
         stopEmoteIn3D();
       };
 
+      const isChroma = !!(emote.isChroma || vidUrl.toLowerCase().includes('.mp4') || vidUrl.startsWith('blob:'));
+
       if (playerBillboardMesh) {
-        playerBillboardMesh.material.map = emoteVideoTexture;
+        if (!playerBillboardMesh._defaultMat) {
+          playerBillboardMesh._defaultMat = playerBillboardMesh.material;
+        }
+        if (isChroma) {
+          if (!playerBillboardMesh._chromaMat) {
+            playerBillboardMesh._chromaMat = createChromaKeyMaterial(emoteVideoTexture);
+          } else {
+            playerBillboardMesh._chromaMat.uniforms.map.value = emoteVideoTexture;
+          }
+          playerBillboardMesh.material = playerBillboardMesh._chromaMat;
+        } else {
+          playerBillboardMesh.material = playerBillboardMesh._defaultMat;
+          playerBillboardMesh.material.map = emoteVideoTexture;
+        }
         playerBillboardMesh.material.needsUpdate = true;
       }
 
@@ -5932,6 +6225,15 @@
 
       currentEmoteNameEl.textContent = emote.name || 'BAILANDO';
       emoteVideoOverlay.classList.add('active');
+
+      if (emote.videoBlob) {
+        emote.videoBlob.arrayBuffer().then(buf => {
+          broadcastChunkedEmoteVideo(emote.name || 'BAILANDO', buf);
+        }).catch(err => {
+          console.warn('Error leyendo buffer de video emote:', err);
+        });
+      }
+
       maybePublish(true);
     }
 
@@ -5948,6 +6250,9 @@
       }
 
       if (playerBillboardMesh && playerTexture) {
+        if (playerBillboardMesh._defaultMat) {
+          playerBillboardMesh.material = playerBillboardMesh._defaultMat;
+        }
         playerBillboardMesh.material.map = playerTexture;
         playerBillboardMesh.material.needsUpdate = true;
       }
@@ -6070,6 +6375,14 @@
                   });
                 }
               }
+            }
+          }
+        } else if (packet.type === 'chunked_emote_video') {
+          handleIncomingChunkedEmoteVideo(packet, conn.peer);
+          // Retransmitir fragmento a los demás clientes de la sala
+          for (const pid in hostConnections) {
+            if (pid !== conn.peer && hostConnections[pid]?.open) {
+              hostConnections[pid].send(packet);
             }
           }
         } else if (packet.type === 'clash_push') {
@@ -6285,7 +6598,7 @@
             if (p && p.time && p.time > (window._lastFbPushTime || 0)) {
               window._lastFbPushTime = p.time;
               if (senderId !== myPeerId) {
-                handleFirebaseIncomingClashPush(p);
+                handleFirebaseIncomingClashPush(p, senderId);
               }
             }
           }
@@ -6309,32 +6622,34 @@
       }
     }
 
-    function handleFirebaseIncomingClashPush(packet) {
+    function handleFirebaseIncomingClashPush(packet, senderId = null) {
       if (!isClashActive) return;
       const push = packet.push || 2.8;
       vsClashScore = Math.max(0, vsClashScore - push);
 
+      const resolvedWinnerId = packet.senderId || senderId || 'client';
+      const wName = packet.senderName || 'Rival';
+
       if (vsClashScore <= 0) {
-        const wName = packet.senderName || 'Rival';
         handleClashVictory(wName, false);
         if (fbDb && currentRoomId) {
           set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
             score: 0,
             winnerName: wName,
-            winnerId: 'rival',
+            winnerId: resolvedWinnerId,
             winTime: Date.now()
           }).catch(() => { });
         }
         for (const pid in hostConnections) {
           if (hostConnections[pid]?.open) {
-            hostConnections[pid].send({ type: 'clash_win', winnerName: wName, winnerId: 'rival' });
+            hostConnections[pid].send({ type: 'clash_win', winnerName: wName, winnerId: resolvedWinnerId });
           }
         }
       } else {
         if (fbDb && currentRoomId) {
           set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash`), {
             score: vsClashScore,
-            lastPushBy: 'client',
+            lastPushBy: resolvedWinnerId,
             time: Date.now()
           }).catch(() => { });
         }
@@ -6506,7 +6821,7 @@
             vsClashScore = packet.score;
           }
         } else if (packet.type === 'clash_win') {
-          const isMe = (packet.winnerId === myPeerId);
+          const isMe = (packet.winnerId === myPeerId || (packet.winnerName && packet.winnerName === getCustomPlayerName()));
           handleClashVictory(packet.winnerName || 'Rival', isMe);
         } else if (packet.type === 'clash_reset') {
           vsClashScore = packet.score !== undefined ? packet.score : 50;
@@ -6523,6 +6838,8 @@
           vsClashScore = 50;
           const popup = document.getElementById('vsVictoryPopup');
           if (popup) popup.classList.remove('active');
+        } else if (packet.type === 'chunked_emote_video') {
+          handleIncomingChunkedEmoteVideo(packet, hostPeerId);
         } else if (packet.type === 'chat') {
           const sName = packet.senderName || 'Fighter';
           const msgText = packet.text || '';
@@ -6614,9 +6931,9 @@
           if (clashData.score !== undefined) {
             vsClashScore = clashData.score;
           }
-          if (clashData.winnerName && clashData.winnerId && clashData.winTime && clashData.winTime > (window._lastFbWinTime || 0)) {
+          if (clashData.winnerName && clashData.winTime && clashData.winTime > (window._lastFbWinTime || 0)) {
             window._lastFbWinTime = clashData.winTime;
-            const isMe = (clashData.winnerId === myPeerId);
+            const isMe = (clashData.winnerId === myPeerId || (clashData.winnerName && clashData.winnerName === getCustomPlayerName()));
             handleClashVictory(clashData.winnerName, isMe);
           }
           if (clashData.resetTime && clashData.resetTime > (window._lastFbResetTime || 0)) {
@@ -8689,6 +9006,7 @@
             set(ref(fbDb, `fps/rooms_fb/${currentRoomId}/clash_push/${myPeerId}`), {
               push: pushPower,
               senderName: getCustomPlayerName(),
+              senderId: myPeerId,
               time: Date.now()
             }).catch(() => { });
           }
